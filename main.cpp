@@ -284,22 +284,6 @@ void SISL_SPI_program(char* device, char* filename, uint8_t hotplug)
 	{
 		fprintf (stderr, "Wrong file format\n");
 		fprintf (stderr, "File: %s is not correct bit file\n\n", filename);
-		return;
-	}
-	
-#ifdef DEBUG
-	printf("%s\n", device);
-#endif
-	//set up connection with PCIe device
-	ttyDesc = SetUpDevice (device);
-	writeRegister(ttyDesc,regAddress(spi_divider),10);
-
-	printf ("Divider: %x  ", spi_divider);
-
-	if(!checkId(ttyDesc))
-	{
-		fprintf(stderr, "Unknown, not present or busy SPI prom\n\n");
-		exit(1);
 	}
 	
 	//erase memory
