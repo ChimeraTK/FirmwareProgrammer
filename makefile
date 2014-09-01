@@ -11,7 +11,7 @@ IPMITOOL_LAN_PLUGIN = $(IPMITOOL_PLUGINS_DIR)/lan
 all: $(OUT)
 
 llrf_prog: II_pcie.o pcie_II_bridge.o xsfv_player.o lenval.o ports.o micro.o ipmitool_wrapper.o ipmi_cmd.o spi_mem_tools.o dsp_tools.o progress_bar.o
-	$(CCP) $(CFLAGS) $^ -o $@ -L./lib/ -ldev -L$(IPMITOOL_LIB)/.libs -lipmitool -L$(IPMITOOL_PLUGINS_DIR)/.libs -lintf -lcurses
+	$(CCP) $(CFLAGS) $^ -o $@ -L./lib/ -ldev -L$(IPMITOOL_LIB)/.libs -lipmitool -L$(IPMITOOL_PLUGINS_DIR)/.libs -lintf -lcurses -lcrypto
 	
 II_pcie.o: main.cpp II_interface.h ipmitool_wrapper.h
 	$(CCP) $(CFLAGS) -DDEVICE=\"/dev/pcie_bar_2\" -c $< -o II_pcie.o
