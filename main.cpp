@@ -18,6 +18,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <iostream>
+#include <dirent.h>
 
 #include "II_interface.h"
 #include "ii_constants.h"
@@ -31,11 +32,11 @@
 
 #define PCIE_DOWN		0
 #define PCIE_UP			1
-#define PCIE_DOWN_UP		2
+#define PCIE_DOWN_UP	2
 
 uint8_t show_example;
 
-typedef enum{			ACT_NONE, 
+typedef enum{	ACT_NONE, 
 				ACT_SPI_PROG,
 				ACT_JTAG_PROG,
 				ACT_SIS_JTAG_PROG,
@@ -57,7 +58,7 @@ typedef enum{			ACT_NONE,
 } action_t;
 
 typedef struct{
-	uint8_t memory_number;
+	int8_t memory_number;
 	uint8_t slot_number;
 	uint8_t board;
 	uint8_t hotplug;
@@ -78,13 +79,28 @@ void init_arguments (arguments_t *arguments);
 int check_XSVF_file(char* filename);
 void PCIe_hot_plug(uint8_t slot_number, uint8_t option);
 
+void PrintAllParameters (arguments_t *arguments){
+	printf ("MCH name: %s\n", arguments->hostname);
+	printf ("Device: %s\n", arguments->device);
+	printf ("Memory Number: %d\n", arguments->memory_number);
+	printf ("Slot Number: %d\n", arguments->slot_number);
+	
+	printf ("Board: %d\n", arguments->board);
+	printf ("HotPlug: %d\n", arguments->hotplug);
+
+	printf ("Protocol: %d\n", arguments->protocol);
+	printf ("Reload: %d\n", arguments->reload);
+	printf ("Action: %d\n", arguments->action);
+	printf ("Source_file: %s\n", arguments->source_file);
+}
+
 
 /** explain the usage of the program */
 void
 usage (const char *progname, uint8_t show_example) 
 {
   fprintf (stderr, "\nLLRF PROM programmer for uTC/uVM/SIS8300/SIS8300L/DAMC2 boards\n");
-  fprintf (stderr, "%s -d [device] -i [interface] -f [firmware file] -h -r -m [MCH name] \n\n", progname);
+  fprintf (stderr, "%s -d [device] -i [interface] -f [firmware file] -H -r -m [MCH name] \n\n", progname);
 
   fprintf (stderr, "Example device: -d /dev/llrfutcs4 \n\n");  
 
@@ -93,7 +109,7 @@ usage (const char *progname, uint8_t show_example)
   fprintf (stderr, "-i jtag\n\n");
   
   fprintf (stderr, "Optional parameter:\n");  
-  fprintf (stderr, "-h: PCIe hot-plug, required write access to /sys/bus/proc/pci/.../enable files\n"); 
+  fprintf (stderr, "-H: PCIe hot-plug, required write access to /sys/bus/proc/pci/.../enable files\n"); 
   fprintf (stderr, "-r: Reload FPGA, require access to MCH\n");   
   fprintf (stderr, "-m: MCH address, e.g. mskmchacc12 \n\n");
   
@@ -104,19 +120,19 @@ usage (const char *progname, uint8_t show_example)
   {
 	  fprintf (stderr, "\nExamples:\n");
 	  fprintf (stderr, "a) uTC board - FPGA:\n");
-	  fprintf (stderr, "\t%s -d /dev/llrfutcs4 -i spi -f /home/user/new_firmware.bit -h \n", progname);
-	  fprintf (stderr, "\t%s -d /dev/llrfutcs4 -h -r\n\n", progname);
+	  fprintf (stderr, "\t%s -d /dev/llrfutcs4 -i spi -f /home/user/new_firmware.bit -H \n", progname);
+	  fprintf (stderr, "\t%s -d /dev/llrfutcs4 -H -r\n\n", progname);
 
 	  fprintf (stderr, "b) uVM board - FPGA\n");
 	  fprintf (stderr, "\t%s -d /dev/llrfutcs4 -i jtag -f /home/user/new_firmware.bit \n\n", progname);
 	  
 	  fprintf (stderr, "c) SIS8300L board - FPGA:\n");
-	  fprintf (stderr, "\t%s -d /dev/llrfadcs4 -i spi -f /home/user/new_firmware.bit -h \n", progname);
-	  fprintf (stderr, "\t%s -d /dev/llrfadcs4 -h -r\n\n", progname);
+	  fprintf (stderr, "\t%s -d /dev/llrfadcs4 -i spi -f /home/user/new_firmware.bit -H \n", progname);
+	  fprintf (stderr, "\t%s -d /dev/llrfadcs4 -H -r\n\n", progname);
 
 	  fprintf (stderr, "d) SIS8300 board - FPGA:\n");
-	  fprintf (stderr, "\t%s -d /dev/llrfadcs4 -i jtag -f /home/user/new_firmware.bit -h \n", progname);
-	  fprintf (stderr, "\t%s -d /dev/llrfadcs4 -h -r\n\n", progname);
+	  fprintf (stderr, "\t%s -d /dev/llrfadcs4 -i jtag -f /home/user/new_firmware.bit -H \n", progname);
+	  fprintf (stderr, "\t%s -d /dev/llrfadcs4 -H -r\n\n", progname);
   }
   else
   {
@@ -127,56 +143,102 @@ usage (const char *progname, uint8_t show_example)
 
 int check_bit_file(char* filename);
 
-
-
-void program_SPI_prom  (arguments_t* arguments) // (char* device, char* filename, uint8_t hotplug)
+void program_SPI_prom  (arguments_t* arguments) 
 {
 	int ttyDesc;
-	
-	//check bit file
-	if( check_bit_file(arguments->source_file) == 0 )
+	FILE* tmp_file = NULL;
+	//Select memory for programming (0 or 1)
+	if (arguments->memory_number != DO_NOT_SELECT_MEMORY)
 	{
-		fprintf (stderr, "Wrong file format\n");
-		fprintf (stderr, "File: %s is not correct bit file\n\n", arguments->source_file);
-		return;
-	}
+		if  	(arguments->memory_number == 0)
+			set_PROM_number(arguments->hostname, arguments->slot_number, UTC_PROGRAMMER_MEM, uTC);
+		else if	(arguments->memory_number == 1)
+			set_PROM_number(arguments->hostname, arguments->slot_number, UTC_APPLICATION_MEM, uTC);
+	} 
+		
+	//Programming if bit-file provided
+	if (arguments->source_file != NULL)
+	{
+		//Check if device available before programming
+		tmp_file = fopen(arguments->device, "r"); 
+		if(tmp_file == NULL)
+		{
+			printf ("Opening device: %s\n", arguments->device);
+			throw "Cannot open the device for programming. Maybe the driver is not loaded nor you do not have rights to open the device.";
+		}
+		else
+		{
+			fclose(tmp_file);
+		}
+		//Check if provided correct bit-file
+		if( check_bit_file(arguments->source_file) == 0 )
+			{
+				fprintf (stderr, "Wrong file format\n");
+				fprintf (stderr, "File: %s is not correct bit file\n\n", arguments->source_file);
+				return;
+			}
+		else 
+		{		
+			// Select default memory (User Application) if not selected 
+			if (arguments->memory_number == DO_NOT_SELECT_MEMORY)
+			{
+//				set_PROM_number(arguments->hostname, arguments->slot_number, UTC_PROGRAMMER_MEM, uTC);
+			}
 	
-	
-#ifdef DEBUG
-	printf("Device to program: %s\n", arguments->device);
-#endif
-	//set up connection with PCIe device
-	ttyDesc = SetUpDevice (arguments->device);
-	writeRegister(ttyDesc,regAddress(spi_divider), 10);
+			#ifdef DEBUG
+				printf("Device to program: %s\n", arguments->device);
+			#endif
+			//set up connection with PCIe device
+			ttyDesc = SetUpDevice (arguments->device);
+			writeRegister(ttyDesc,regAddress(spi_divider), 10);
 
-	if(!checkId(ttyDesc))
-	{
-		fprintf(stderr, "Unknown, not present or busy SPI prom\n\n");
-		exit(1);
+			if(!checkId(ttyDesc))
+			{
+				fprintf(stderr, "Unknown, not present or busy SPI prom\n\n");
+				exit(1);
+			}
+			
+			//erase memory
+			write_enable (ttyDesc);
+			bulk_erase_mem (ttyDesc);
+			
+			//program memory
+			write_enable (ttyDesc);
+			program_mem (ttyDesc, arguments->source_file);
+			
+			//verify memory
+			if( verify_mem (ttyDesc, arguments->source_file))
+			{
+				exit(1);
+			}
+		}
 	}
 	
-	//erase memory
-	write_enable (ttyDesc);
-	bulk_erase_mem (ttyDesc);
-	
-	//program memory
-	write_enable (ttyDesc);
-	program_mem (ttyDesc, arguments->source_file);
-	
-	//verify memory
-	if( verify_mem (ttyDesc, arguments->source_file))
-	{
-		exit(1);
-	}
-
+	// Hot-plug is requested
 	if(arguments->hotplug)
 	{
-		fprintf(stdout, "PCIe Hot-plug...\n");
+			fprintf(stdout, "PCIe Hot-plug...\n");
+		
+		
+	/* 	DIR* dir = opendir("mydir");
+		if (dir)
+		{
+			Directory exists.
+			closedir(dir);
+		}
+		else if (ENOENT == errno)
+		{
+			Directory does not exist.
+		}
+		else
+		{
+			opendir() failed for some other reason.
+		} */
+		
 		PCIe_hot_plug(arguments->slot_number, PCIE_DOWN);
 	}
 	
-	
-	//send command causing FPGA reboot
+	//FPGA reboot is requested
 	if(arguments->reload)
 	{
 	  if(arguments->board = SIS8300)
@@ -190,6 +252,7 @@ void program_SPI_prom  (arguments_t* arguments) // (char* device, char* filename
 	
 	if(arguments->hotplug)
 	{
+	
 		//rescan PCIe bus
 		PCIe_hot_plug(arguments->slot_number, PCIE_UP);
 	}
@@ -251,7 +314,7 @@ void program_JTAG_prom (arguments_t* arguments) //--char* device, char* filename
 	if(arguments->hotplug)
 	{
 		fprintf(stdout, "PCIe Hot-plug...\n");
-		PCIe_hot_plug(arguments->slot_number, PCIE_DOWN);
+//		PCIe_hot_plug(filename, PCIE_DOWN);
 	}
 	
 	
@@ -270,7 +333,7 @@ void program_JTAG_prom (arguments_t* arguments) //--char* device, char* filename
 	if(arguments->hotplug)
 	{
 		//rescan PCIe bus
-		PCIe_hot_plug(arguments->slot_number, PCIE_UP);
+//		PCIe_hot_plug(char* pcie_path, PCIE_UP);
 	}
 }
 
@@ -353,8 +416,20 @@ void PCIe_hot_plug(uint8_t slot_number, uint8_t option)
 	char filename[128];
 	FILE *file = NULL;
 	
-	sprintf(filename, "/sys/bus/pci/slots/%d/power", slot_number);
+	//Check if xxxx_1 device exists  
+	sprintf(filename, "/sys/bus/pci/slots/%d-1", slot_number);
 	
+	DIR* dir = opendir(filename);
+	if (dir)
+	{
+		/* Directory exists. */
+		closedir(dir);
+		sprintf(filename, "/sys/bus/pci/slots/%d-1/power", slot_number);
+	}
+	else
+	{
+		sprintf(filename, "/sys/bus/pci/slots/%d/power", slot_number);
+	}
 #ifdef DEBUG
 	printf("%s\n", filename);
 #endif
@@ -568,7 +643,7 @@ void uTC_mem_program(char* hostname, uint8_t slot_number, uint8_t memory_number,
 	
 	if(hotplug)
 	{
-		PCIe_hot_plug(slot_number, PCIE_DOWN);
+//		PCIe_hot_plug(slot_number, PCIE_DOWN);
 	}
 	
 	//send command causing FPGA reboot
@@ -581,7 +656,7 @@ void uTC_mem_program(char* hostname, uint8_t slot_number, uint8_t memory_number,
 	if(hotplug)
 	{
 		//rescan PCIe bus
-		PCIe_hot_plug(slot_number, PCIE_UP);
+	//	PCIe_hot_plug(slot_number, PCIE_UP);
 	}
 	
 	//retrieve number of currently selected memory - to verify
@@ -594,11 +669,11 @@ void uTC_mem_recover(char* hostname, uint8_t slot_number, int hotplug)
 	uint8_t memory_number;
 	
 	//select memory no 1
-	set_PROM_number(hostname, slot_number, UTC_DEFAULT_PROGRAMMER_MEM, uTC);
+	set_PROM_number(hostname, slot_number, UTC_PROGRAMMER_MEM, uTC);
 
 	if(hotplug)
 	{
-		PCIe_hot_plug(slot_number, PCIE_DOWN);
+//		PCIe_hot_plug(slot_number, PCIE_DOWN);
 	}
 	
 	//send command causing FPGA reboot
@@ -611,7 +686,7 @@ void uTC_mem_recover(char* hostname, uint8_t slot_number, int hotplug)
 	if(hotplug)
 	{
 		//rescan PCIe bus
-		PCIe_hot_plug(slot_number, PCIE_UP);
+//		PCIe_hot_plug(slot_number, PCIE_UP);
 	}
 	
 	//retrieve number of currently selected memory - to verify
@@ -635,7 +710,7 @@ void uTC_mem_select(char* hostname, uint8_t slot_number, uint8_t memory_number, 
 	
 	if(hotplug)
 	{
-		PCIe_hot_plug(slot_number, PCIE_DOWN);
+//		PCIe_hot_plug(slot_number, PCIE_DOWN);
 	}
 	
 	//send command causing FPGA reboot
@@ -648,7 +723,7 @@ void uTC_mem_select(char* hostname, uint8_t slot_number, uint8_t memory_number, 
 	if(hotplug)
 	{
 		//rescan PCIe bus
-		PCIe_hot_plug(slot_number, PCIE_UP);
+//		PCIe_hot_plug(slot_number, PCIE_UP);
 	}
 	
 	//retrieve number of currently selected memory - to verify
@@ -884,7 +959,7 @@ void SISL_mem_program(char* hostname, uint8_t slot_number, uint8_t memory_number
 #endif
 	if(hotplug)
 	{
-		PCIe_hot_plug(slot_number, PCIE_DOWN);
+//		PCIe_hot_plug(slot_number, PCIE_DOWN);
 	}
 	
 	//send command causing FPGA reboot
@@ -897,7 +972,7 @@ void SISL_mem_program(char* hostname, uint8_t slot_number, uint8_t memory_number
 	if(hotplug)
 	{
 		//rescan PCIe bus
-		PCIe_hot_plug(slot_number, PCIE_UP);
+//		PCIe_hot_plug(slot_number, PCIE_UP);
 	}
 
 
@@ -938,7 +1013,7 @@ void SIS_mem_program(char* hostname, uint8_t slot_number, uint8_t memory_number,
 
 	if(hotplug)
 	{
-		PCIe_hot_plug(slot_number, PCIE_DOWN);
+//		PCIe_hot_plug(slot_number, PCIE_DOWN);
 	}
 	
 	//send command causing FPGA reboot
@@ -951,7 +1026,7 @@ void SIS_mem_program(char* hostname, uint8_t slot_number, uint8_t memory_number,
 	if(hotplug)
 	{
 		//rescan PCIe bus
-		PCIe_hot_plug(slot_number, PCIE_UP);
+//		PCIe_hot_plug(slot_number, PCIE_UP);
 	}
 }
 
@@ -962,7 +1037,7 @@ void SIS_mem_recover(char* hostname, uint8_t slot_number, int hotplug)
 
 	if(hotplug)
 	{
-		PCIe_hot_plug(slot_number, PCIE_DOWN);
+//		PCIe_hot_plug(slot_number, PCIE_DOWN);
 	}
 
 	//send command causing FPGA reboot
@@ -975,7 +1050,7 @@ void SIS_mem_recover(char* hostname, uint8_t slot_number, int hotplug)
 	if(hotplug)
 	{
 		//rescan PCIe bus
-		PCIe_hot_plug(slot_number, PCIE_UP);
+//		PCIe_hot_plug(slot_number, PCIE_UP);
 	}
 }
 
@@ -992,7 +1067,7 @@ void SIS_mem_select(char* hostname, uint8_t slot_number, uint8_t memory_number, 
 
 	if(hotplug)
 	{
-		PCIe_hot_plug(slot_number, PCIE_DOWN);
+//		PCIe_hot_plug(slot_number, PCIE_DOWN);
 	}
 
 	//send command causing FPGA reboot
@@ -1005,7 +1080,7 @@ void SIS_mem_select(char* hostname, uint8_t slot_number, uint8_t memory_number, 
 	if(hotplug)
 	{
 		//rescan PCIe bus
-		PCIe_hot_plug(slot_number, PCIE_UP);
+//		PCIe_hot_plug(slot_number, PCIE_UP);
 	}
 }
 
@@ -1047,7 +1122,7 @@ void DAMC2_mem_program(char* hostname, uint8_t slot_number, uint8_t memory_numbe
 
 	if(hotplug)
 	{
-		PCIe_hot_plug(slot_number, PCIE_DOWN);
+//		PCIe_hot_plug(slot_number, PCIE_DOWN);
 	}
 	
 	//send command causing FPGA reboot
@@ -1060,7 +1135,7 @@ void DAMC2_mem_program(char* hostname, uint8_t slot_number, uint8_t memory_numbe
 	if(hotplug)
 	{
 		//rescan PCIe bus
-		PCIe_hot_plug(slot_number, PCIE_UP);
+//		PCIe_hot_plug(slot_number, PCIE_UP);
 	}
 }
 
@@ -1071,7 +1146,7 @@ void DAMC2_mem_recover(char* hostname, uint8_t slot_number, int hotplug)
 
 	if(hotplug)
 	{
-		PCIe_hot_plug(slot_number, PCIE_DOWN);
+//		PCIe_hot_plug(slot_number, PCIE_DOWN);
 	}
 	
 	//send command causing FPGA reboot
@@ -1084,7 +1159,7 @@ void DAMC2_mem_recover(char* hostname, uint8_t slot_number, int hotplug)
 	if(hotplug)
 	{
 		//rescan PCIe bus
-		PCIe_hot_plug(slot_number, PCIE_UP);
+//		PCIe_hot_plug(slot_number, PCIE_UP);
 	}
 }
 
@@ -1101,7 +1176,7 @@ void DAMC2_mem_select(char* hostname, uint8_t slot_number, uint8_t memory_number
 
 	if(hotplug)
 	{
-		PCIe_hot_plug(slot_number, PCIE_DOWN);
+//		PCIe_hot_plug(slot_number, PCIE_DOWN);
 	}
 
 	//send command causing FPGA reboot
@@ -1114,7 +1189,7 @@ void DAMC2_mem_select(char* hostname, uint8_t slot_number, uint8_t memory_number
 	if(hotplug)
 	{
 		//rescan PCIe bus
-		PCIe_hot_plug(slot_number, PCIE_UP);
+//		PCIe_hot_plug(slot_number, PCIE_UP);
 	}
 }
 
@@ -1125,7 +1200,7 @@ arguments_t decode_arguments(int argc, char *argv[], arguments_t* arguments)
 	uint8_t slot_number = 0;
 //	char* hostname = NULL;
 	char* source_file = NULL;
-	
+
 	int program = 0;
 	int recover = 0;
 	int select = 0;
@@ -1145,7 +1220,7 @@ arguments_t decode_arguments(int argc, char *argv[], arguments_t* arguments)
 
 
 //get and parse input options			
-	while ((opt = getopt (argc, argv, "ed:?i:?f:?hrp:?m:?s:?")) != -1)
+	while ((opt = getopt (argc, argv, "hed:?i:?f:?Hrp:?m:?s:?")) != -1)
 	{
 		switch(opt)
 		{
@@ -1164,7 +1239,6 @@ arguments_t decode_arguments(int argc, char *argv[], arguments_t* arguments)
 				{
 					throw "Cannot use more than one protocol at the same time\n";
 				}	
-				
 #ifdef DEBUG
 				printf ("Protocol used to program memory: %s \n", optarg);
 #endif
@@ -1182,13 +1256,25 @@ arguments_t decode_arguments(int argc, char *argv[], arguments_t* arguments)
 				{
 					throw "Cannot open more than one file at the same time\n";
 				}	
-				arguments->source_file = optarg;
+				arguments->source_file = optarg;				
+				if(arguments->source_file != NULL)
+				{
+					tmp_file = fopen(arguments->source_file, "r");
+					if(tmp_file == NULL)
+					{
+						throw "Cannot open source file.\n";
+					}
+					else
+					{
+						fclose(tmp_file);
+					}
+				}
 #ifdef DEBUG			
 				printf ("File to open: %s \n", optarg);	
 #endif
 				break;
 			case 'p':
-				if(arguments->memory_number)
+				if(arguments->memory_number != DO_NOT_SELECT_MEMORY)
 				{
 					throw "Cannot read more than one PROM number at the same time\n";
 				}
@@ -1204,6 +1290,10 @@ arguments_t decode_arguments(int argc, char *argv[], arguments_t* arguments)
 				{
 					throw "Provide correct PROM number\n";
 				}
+				if (arguments->action == NULL)
+				{
+					arguments->action = ACT_SPI_PROG;
+				}
 #ifdef DEBUG
 				printf ("PROM number: %d \n", arguments->memory_number);	
 #endif
@@ -1217,10 +1307,6 @@ arguments_t decode_arguments(int argc, char *argv[], arguments_t* arguments)
 				printf ("Board in slot: %s \n", optarg);	
 #endif
 				arguments->slot_number = strtol (optarg, NULL, 10);	
-				if(arguments->slot_number<=0)
-				{
-					throw "Provide correct slot number\n";
-				}
 				if ((arguments->slot_number <= 0) || (arguments->slot_number  > 12))
 				{
 					throw "Provide correct slot number\n";
@@ -1231,11 +1317,15 @@ arguments_t decode_arguments(int argc, char *argv[], arguments_t* arguments)
 				extract_slot_number = 0; 
 				break;
 
-			case 'h':
+			case 'H':
 				arguments->hotplug = 1;
 #ifdef DEBUG
 				printf ("Use hot-plug \n");	
 #endif
+				if (arguments->action == NULL)
+				{
+					arguments->action = ACT_SPI_PROG;
+				}
 				break;
 			case 'r':
 				arguments->reload = 1;
@@ -1252,14 +1342,43 @@ arguments_t decode_arguments(int argc, char *argv[], arguments_t* arguments)
 			case 'e':
 				show_example = 1;
 				usage (argv[0], show_example);
+				exit (0);
 				break;
+			case 'h':
+				show_example = 1;
+				usage (argv[0], show_example);
+				exit (0);
+				break;	
 			default:		/* '?' */
 				usage (argv[0], show_example);
+				exit (0);
 		}
 		fflush(stdout);
 	}
 
-
+	if(arguments->device != NULL)
+	{
+		/* tmp_file = fopen(arguments->device, "r"); 
+		if(tmp_file == NULL)
+		{
+			printf ("Opening device: %s\n", arguments->device);
+			throw "Cannot open the device for programming. Maybe the driver is not loaded nor you do not have rights to open the device.";
+		}
+		else
+		{
+			fclose(tmp_file);
+		}*/
+	}
+	else 
+	{
+		throw "Cannot make any actions without provided device";
+	}
+	
+	// Input parameters debug info
+	PrintAllParameters (arguments);
+	
+	if (arguments->device != NULL)
+	{
 		if      (source_file = strstr (arguments->device, "adcs")) 
 		{
 			if (arguments->action == ACT_JTAG_PROG)
@@ -1296,7 +1415,10 @@ arguments_t decode_arguments(int argc, char *argv[], arguments_t* arguments)
 #endif	
 			}
 		}
-
+		else 
+			throw "Unknown device, only DAMC-TCK7 (llrfutcs) and DRTM-VM2 are supported";
+	}
+	
 // Extract slot number 		
 	if (extract_slot_number == 1)
 	{
@@ -1606,7 +1728,7 @@ arguments_t decode_arguments(int argc, char *argv[], arguments_t* arguments)
 
 void init_arguments (arguments_t *arguments){
 
-	arguments->memory_number = 0;
+	arguments->memory_number = -1;
 	arguments->slot_number = 0;
 	arguments->hotplug = 0;
 	arguments->hostname = NULL;
