@@ -19,7 +19,7 @@ LIBS := curses
 DEBUG := yes
 
 # compiler/linker flags
-CXXFLAGS := -fPIC -Wall -Wextra -Wshadow -Weffc++ -ansi -pedantic -Wuninitialized -std=c++11
+CXXFLAGS := -fPIC -Wall -Wextra -Wshadow -Weffc++ -ansi -pedantic -Wuninitialized -std=c++0x
 
 LDFLAGS := $(LIBDIRS:%=-L%) $(LIBS:%=-l%) $(MtcaMappedDevice_LIB_FLAGS)
 ifeq ($(DEBUG),yes)
