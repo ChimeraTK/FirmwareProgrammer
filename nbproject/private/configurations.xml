@@ -6,11 +6,13 @@
         <in>MtcaProgrammerBase.h</in>
         <in>MtcaProgrammerJTAG.h</in>
         <in>MtcaProgrammerSPI.h</in>
+        <in>XSVFPlayer.h</in>
+        <in>XSVFPlayerConstants.h</in>
+        <in>XSVFPlayerInterface.h</in>
         <in>global.h</in>
         <in>ii_constants.h</in>
         <in>lenval.h</in>
         <in>micro.h</in>
-        <in>ports.h</in>
         <in>progress_bar.h</in>
         <in>spi_prom_commands.h</in>
       </df>
@@ -23,15 +25,16 @@
         </df>
         <df name="utc">
         </df>
+        <df name="uvm">
+        </df>
       </df>
       <df name="src">
         <in>MtcaProgrammerBase.cpp</in>
         <in>MtcaProgrammerJTAG.cpp</in>
         <in>MtcaProgrammerSPI.cpp</in>
+        <in>XSVFPlayer.cpp</in>
         <in>lenval.cpp</in>
         <in>main.cpp</in>
-        <in>micro.cpp</in>
-        <in>ports.cpp</in>
         <in>progress_bar.cpp</in>
       </df>
     </df>

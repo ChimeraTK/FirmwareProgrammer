@@ -11,11 +11,10 @@
 *               FINALLY - Call xsvfExecute().
 *****************************************************************************/
 #include "lenval.h"
+#include <stdio.h>
 
 #ifndef XSVF_MICRO_H
 #define XSVF_MICRO_H
-
-
 
 /* Legacy error codes for xsvfExecute from original XSVF player v2.0 */
 #define XSVF_LEGACY_SUCCESS 1

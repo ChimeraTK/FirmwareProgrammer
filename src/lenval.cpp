@@ -4,7 +4,7 @@
 /*            the lenVal data structure.               */
 /*******************************************************/
 #include "lenval.h"
-#include "ports.h"
+#include "micro.h"
 
 /*****************************************************************************
 * Function:     value
@@ -14,17 +14,17 @@
 *****************************************************************************/
 long value( lenVal*     plvValue )
 {
-	long    lValue;         /* result to hold the accumulated result */
-	short   sIndex;
+    long    lValue;         /* result to hold the accumulated result */
+    short   sIndex;
 
     lValue  = 0;
-	for ( sIndex = 0; sIndex < plvValue->len ; ++sIndex )
-	{
-		lValue <<= 8;                       /* shift the accumulated result */
-		lValue |= plvValue->val[ sIndex];   /* get the last byte first */
-	}
+    for ( sIndex = 0; sIndex < plvValue->len ; ++sIndex )
+    {
+        lValue <<= 8;                       /* shift the accumulated result */
+        lValue |= plvValue->val[ sIndex];   /* get the last byte first */
+    }
 
-	return( lValue );
+    return( lValue );
 }
 
 /*****************************************************************************
@@ -38,8 +38,8 @@ long value( lenVal*     plvValue )
 void initLenVal( lenVal*    plv,
                  long       lValue )
 {
-	plv->len    = 1;
-	plv->val[0] = (unsigned char)lValue;
+    plv->len    = 1;
+    plv->val[0] = (unsigned char)lValue;
 }
 
 /*****************************************************************************
@@ -55,7 +55,7 @@ short EqualLenVal( lenVal*  plvTdoExpected,
                    lenVal*  plvTdoMask )
 {
     short           sEqual;
-	short           sIndex;
+    short           sIndex;
     unsigned char   ucByteVal1;
     unsigned char   ucByteVal2;
     unsigned char   ucByteMask;
@@ -141,50 +141,30 @@ void addVal( lenVal*    plvResVal,
              lenVal*    plvVal1,
              lenVal*    plvVal2 )
 {
-	unsigned char   ucCarry;
+    unsigned char   ucCarry;
     unsigned short  usSum;
     unsigned short  usVal1;
     unsigned short  usVal2;
-	short           sIndex;
+    short           sIndex;
 	
-	plvResVal->len  = plvVal1->len;         /* set up length of result */
+    plvResVal->len  = plvVal1->len;         /* set up length of result */
 	
-	/* start at least significant bit and add bytes    */
+    /* start at least significant bit and add bytes    */
     ucCarry = 0;
     sIndex  = plvVal1->len;
     while ( sIndex-- )
     {
-		usVal1  = plvVal1->val[ sIndex ];   /* i'th byte of val1 */
-		usVal2  = plvVal2->val[ sIndex ];   /* i'th byte of val2 */
+        usVal1  = plvVal1->val[ sIndex ];   /* i'th byte of val1 */
+        usVal2  = plvVal2->val[ sIndex ];   /* i'th byte of val2 */
 		
-		/* add the two bytes plus carry from previous addition */
-		usSum   = (unsigned short)( usVal1 + usVal2 + ucCarry );
+        /* add the two bytes plus carry from previous addition */
+        usSum   = (unsigned short)( usVal1 + usVal2 + ucCarry );
 		
-		/* set up carry for next byte */
-		ucCarry = (unsigned char)( ( usSum > 255 ) ? 1 : 0 );
+        /* set up carry for next byte */
+        ucCarry = (unsigned char)( ( usSum > 255 ) ? 1 : 0 );
 		
         /* set the i'th byte of the result */
-		plvResVal->val[ sIndex ]    = (unsigned char)usSum;
-    }
-}
-
-/*****************************************************************************
-* Function:     readVal
-* Description:  read from XSVF numBytes bytes of data into x.
-* Parameters:   plv         - ptr to lenval in which to put the bytes read.
-*               sNumBytes   - the number of bytes to read.
-* Returns:      void.
-*****************************************************************************/
-void readVal( lenVal*   plv,
-              short     sNumBytes )
-{
-    unsigned char*  pucVal;
-	
-    plv->len    = sNumBytes;        /* set the length of the lenVal        */
-    for ( pucVal = plv->val; sNumBytes; --sNumBytes, ++pucVal )
-    {
-        /* read a byte of data into the lenVal */
-		readByte( pucVal );
+        plvResVal->val[ sIndex ]    = (unsigned char)usSum;
     }
 }
 

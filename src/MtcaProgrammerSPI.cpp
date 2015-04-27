@@ -24,7 +24,6 @@ const std::map<uint64_t, addressing_mode_t> MtcaProgrammerSPI::known_proms = {
 
 MtcaProgrammerSPI::MtcaProgrammerSPI(mtcaDevPtr dev, uint32_t base_address, uint8_t bar) 
     : MtcaProgrammerBase(dev, base_address, bar){
-
 }
 
 MtcaProgrammerSPI::~MtcaProgrammerSPI() {
