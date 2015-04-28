@@ -24,7 +24,7 @@
 #include <iostream>
 #include <string>
 
-#include "global.h"
+#include "registers.h"
 #include "MtcaProgrammerBase.h"
 #include "MtcaProgrammerSPI.h"
 #include "MtcaProgrammerJTAG.h"
@@ -33,8 +33,9 @@
 #include <mtca4u/MtcaMappedDevice/devPCIE.h>
 
 #define VERSION                 "4.0"
+//#define DEBUG
 
-uint8_t show_example;
+using namespace std;
 
 class ProgrammingInterface {    
 public:
@@ -66,78 +67,59 @@ private:
     InterfaceType mType;
 };
 
-typedef struct{
-	ProgrammingInterface interface;
-        char* source_file;
-	char* device;
-        uint32_t address;
-        uint8_t bar;
-} arguments_t;
-
-extern int xsfv_player(int argc, char* argv[]);
-
-void init_arguments (arguments_t *arguments);
-
-void PrintAllParameters (arguments_t *arguments){
-	printf ("Device: %s\n", arguments->device);
-        printf ("Interface: %s\n", arguments->interface.toString().c_str());
-        printf ("File: %s\n", arguments->source_file);
-        printf ("Programmer:\n");
-        printf ("\taddress: %d\n", arguments->address);
-        printf ("\tbar: %d\n", arguments->bar);
-}
+struct arguments_t{
+    ProgrammingInterface interface;
+    char* source_file;
+    char* device;
+    uint32_t address;
+    uint8_t bar;
+    
+    arguments_t() : 
+        interface(ProgrammingInterface(ProgrammingInterface::INTERFACE_NONE)),
+        source_file(NULL),
+        device(NULL),
+        address(PROG_DEFAULT_ADDRESS),
+        bar(PROG_DEFAULT_BAR)
+    {
+    }
+    
+    string toString()
+    {
+        ostringstream os;
+        os << "Device: " << device << endl;
+        os << "Interface: " << interface.toString() << endl;
+        os << "File: " << source_file << endl;
+        os << "Programmer:" << endl;
+        os << "\taddress: " << address << endl;
+        os << "\tbar:" << bar << endl;
+        
+        return os.str();
+    }
+};
 
 /** explain the usage of the program */
 void
-usage (const char *progname, uint8_t show_example) 
+usage (const char *progname) 
 {
-  fprintf (stderr, "\nLLRF PROM programmer for uTC/uVM/SIS8300/SIS8300L/DAMC2 boards\n");
-  fprintf (stderr, "%s -d [device] -i [interface] -f [firmware file] -H -r -m [MCH name] \n\n", progname);
+    fprintf (stderr, "\nLLRF PROM programmer for uTC/uVM/SIS8300/SIS8300L/DAMC2 boards\n");
+    fprintf (stderr, "%s -d [device] -i [interface] -f [firmware file] -a [address]b[bar]\n\n", progname);
 
-  fprintf (stderr, "Example device: -d /dev/llrfutcs4 \n\n");  
+    fprintf (stderr, "Example: %s -d /dev/llrfutcs4 -i spi -f firmware.bin -a 16384b0\n\n", progname);  
 
-  fprintf (stderr, "Supported interfaces:\n");  
-  fprintf (stderr, "-i spi \n");   
-  fprintf (stderr, "-i jtag\n\n");
-  
-  fprintf (stderr, "Optional parameter:\n");  
-  fprintf (stderr, "-H: PCIe hot-plug, required write access to /sys/bus/proc/pci/.../enable files\n"); 
-  fprintf (stderr, "-r: Reload FPGA, require access to MCH\n");   
-  fprintf (stderr, "-m: MCH address, e.g. mskmchacc12 \n\n");
-  
-  fprintf (stderr, "\n Type %s -e  for examples \n\n", progname);
- 
+    fprintf (stderr, "Supported interfaces:\n");  
+    fprintf (stderr, "-i spi \n");   
+    fprintf (stderr, "-i jtag\n\n");
 
-  if(show_example)
-  {
-	  fprintf (stderr, "\nExamples:\n");
-	  fprintf (stderr, "a) uTC board - FPGA:\n");
-	  fprintf (stderr, "\t%s -d /dev/llrfutcs4 -i spi -f /home/user/new_firmware.bit -H \n", progname);
-	  fprintf (stderr, "\t%s -d /dev/llrfutcs4 -H -r\n\n", progname);
-
-	  fprintf (stderr, "b) uVM board - FPGA\n");
-	  fprintf (stderr, "\t%s -d /dev/llrfutcs4 -i jtag -f /home/user/new_firmware.bit \n\n", progname);
-	  
-	  fprintf (stderr, "c) SIS8300L board - FPGA:\n");
-	  fprintf (stderr, "\t%s -d /dev/llrfadcs4 -i spi -f /home/user/new_firmware.bit -H \n", progname);
-	  fprintf (stderr, "\t%s -d /dev/llrfadcs4 -H -r\n\n", progname);
-
-	  fprintf (stderr, "d) SIS8300 board - FPGA:\n");
-	  fprintf (stderr, "\t%s -d /dev/llrfadcs4 -i jtag -f /home/user/new_firmware.bit -H \n", progname);
-	  fprintf (stderr, "\t%s -d /dev/llrfadcs4 -H -r\n\n", progname);
-  }
-  else
-  {
-	  fprintf (stderr, "Use option -e to see examples\n\n");
-  }
-  exit (1);
+    exit (1);
 }
 
-arguments_t decode_and_verify_arguments(int argc, char *argv[], arguments_t* arguments)
+arguments_t decode_and_verify_arguments(int argc, char *argv[])
 {
     int opt;
     FILE* tmp_file;
 				
+    arguments_t arguments;
+    
 #ifdef DEBUG
     printf ("Debug active, parsing arguments... \n");
     fflush (stdout);
@@ -149,33 +131,33 @@ arguments_t decode_and_verify_arguments(int argc, char *argv[], arguments_t* arg
         switch(opt)
         {
             case 'i':
-                if(arguments->interface.getType() != ProgrammingInterface::INTERFACE_NONE)
+                if(arguments.interface.getType() != ProgrammingInterface::INTERFACE_NONE)
                 {
                     throw "Cannot use more than one interface at the same time.\n";
                 }	
                 if ((strncmp (optarg, "spi", 3)) == 0)
-                    arguments->interface = ProgrammingInterface(ProgrammingInterface::INTERFACE_SPI);
+                    arguments.interface = ProgrammingInterface(ProgrammingInterface::INTERFACE_SPI);
                 else if ((strncmp (optarg, "jtag", 4)) == 0)
-                    arguments->interface = ProgrammingInterface(ProgrammingInterface::INTERFACE_JTAG);
+                    arguments.interface = ProgrammingInterface(ProgrammingInterface::INTERFACE_JTAG);
                 else 
                     throw ("Unknown protocol, use spi or jtag \n");
                 
                 break;
                     
             case 'f':
-                if(arguments->source_file)
+                if(arguments.source_file)
                 {
                     throw "Cannot open more than one file at the same time.\n";
                 }
-                arguments->source_file = strdup(optarg);				
+                arguments.source_file = strdup(optarg);				
                 break;
             
             case 'd':
-                if(arguments->device)
+                if(arguments.device)
                 {
                     throw "Cannot open more than one device at the same time.\n";
                 }	
-                arguments->device = strdup(optarg);
+                arguments.device = strdup(optarg);
                 break;
             
             case 'a':
@@ -207,8 +189,8 @@ arguments_t decode_and_verify_arguments(int argc, char *argv[], arguments_t* arg
                         if(idx != bar_ch.length())
                             throw "Wrong format of programmer address.\n";
                         
-                        arguments->address = address;
-                        arguments->bar = bar;
+                        arguments.address = address;
+                        arguments.bar = bar;
                     }
                     catch(...)
                     {
@@ -220,43 +202,43 @@ arguments_t decode_and_verify_arguments(int argc, char *argv[], arguments_t* arg
                 
             case 'h':
             default:		/* '?' */
-                usage (argv[0], show_example);
+                usage (argv[0]);
                 exit (0);
         }
     }
 
     //Arguments verification
-    if(arguments->device == NULL)
+    if(arguments.device == NULL)
     {
         printf("Cannot make any actions without provided device.\n"
                 "Please specify device for programming.\n");
-        usage(argv[0], 0);
+        usage(argv[0]);
     }
     else
     {
-        tmp_file = fopen(arguments->device, "r"); 
+        tmp_file = fopen(arguments.device, "r"); 
         if(tmp_file == NULL)
             throw "Cannot open the device for programming. Maybe the driver is not loaded nor you do not have rights to open the device.";
         else
             fclose(tmp_file);
     }
 
-    if(arguments->interface.getType() == ProgrammingInterface::INTERFACE_NONE) 
+    if(arguments.interface.getType() == ProgrammingInterface::INTERFACE_NONE) 
     {
         printf("Programming interface (SPI/JTAG) is missing.\n"
                 "Please specify the interface appropriate for the device.\n");
-        usage(argv[0], 0);
+        usage(argv[0]);
     } 
 
-    if(arguments->source_file == NULL )
+    if(arguments.source_file == NULL )
     {
         printf("Source file is missing.\n"
                 "Please specify the location of file with firmware.\n");
-        usage(argv[0], 0);
+        usage(argv[0]);
     }
     else
     {
-        tmp_file = fopen(arguments->source_file, "r");
+        tmp_file = fopen(arguments.source_file, "r");
         if(tmp_file == NULL)
             throw "Cannot open source file. Please check if file exists and you have rights to access it.\n";
         else
@@ -265,31 +247,22 @@ arguments_t decode_and_verify_arguments(int argc, char *argv[], arguments_t* arg
         
 #ifdef DEBUG    
     // Input parameters debug info
-    PrintAllParameters (arguments);
+    cout << arguments.toString();
 #endif
-}
-
-void init_arguments (arguments_t *arguments)
-{
-    arguments->interface = ProgrammingInterface(ProgrammingInterface::INTERFACE_NONE);
-    arguments->source_file=NULL;
-    arguments->device = NULL;
-    arguments->address = PROG_DEFAULT_ADDRESS;
-    arguments->bar = PROG_DEFAULT_BAR;
+    
+    return arguments;
 }
 
 int main (int argc, char *argv[])
 {
     boost::shared_ptr<MtcaProgrammerBase> programmer;
-    
-    show_example = 0;
-    arguments_t arguments;
-    init_arguments (&arguments);
         
+    arguments_t arguments;
+    
     try
     {
-        printf("\nSimple llrf_prog ver. %s\n", VERSION);
-        decode_and_verify_arguments(argc, argv, &arguments);
+        cout << "\nSimple llrf_prog ver. " << VERSION << endl;
+        arguments = decode_and_verify_arguments(argc, argv);
                                	
         //print arguments
         printf("Programing PROM of %s device\n", arguments.device);
@@ -317,7 +290,6 @@ int main (int argc, char *argv[])
         {
             fprintf(stderr, "Incorrect firmware file\n");
         }
-        programmer->initialize();
         programmer->erase();
         programmer->program(arguments.source_file);
         programmer->verify(arguments.source_file);

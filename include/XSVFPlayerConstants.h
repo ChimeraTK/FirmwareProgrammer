@@ -8,6 +8,8 @@
 #ifndef XSVFPLAYERCONSTANTS_H
 #define	XSVFPLAYERCONSTANTS_H
 
+#include "lenval.h"
+
 /*============================================================================
 * #include files
 ============================================================================*/
@@ -166,71 +168,74 @@
 #define XTAPSTATE_EXIT2IR   0x0E
 #define XTAPSTATE_UPDATEIR  0x0F
 
-#ifdef  DEBUG_MODE
-    const char* xsvf_pzCommandName[]  =
-    {
-        "XCOMPLETE",
-        "XTDOMASK",
-        "XSIR",
-        "XSDR",
-        "XRUNTEST",
-        "Reserved5",
-        "Reserved6",
-        "XREPEAT",
-        "XSDRSIZE",
-        "XSDRTDO",
-        "XSETSDRMASKS",
-        "XSDRINC",
-        "XSDRB",
-        "XSDRC",
-        "XSDRE",
-        "XSDRTDOB",
-        "XSDRTDOC",
-        "XSDRTDOE",
-        "XSTATE",
-        "XENDIR",
-        "XENDDR",
-        "XSIR2",
-        "XCOMMENT",
-        "XWAIT"
-    };
+/* Legacy error codes for xsvfExecute from original XSVF player v2.0 */
+#define XSVF_LEGACY_SUCCESS 1
+#define XSVF_LEGACY_ERROR   0
 
-    const char*   xsvf_pzErrorName[]  =
-    {
-        "No error",
-        "ERROR:  Unknown",
-        "ERROR:  TDO mismatch",
-        "ERROR:  TDO mismatch and exceeded max retries",
-        "ERROR:  Unsupported XSVF command",
-        "ERROR:  Illegal state specification",
-        "ERROR:  Data overflows allocated MAX_LEN buffer size"
-    };
+/* 4.04 [NEW] Error codes for xsvfExecute. */
+/* Must #define XSVF_SUPPORT_ERRORCODES in micro.c to get these codes */
+#define XSVF_ERROR_NONE         0
+#define XSVF_ERROR_UNKNOWN      1
+#define XSVF_ERROR_TDOMISMATCH  2
+#define XSVF_ERROR_MAXRETRIES   3   /* TDO mismatch after max retries */
+#define XSVF_ERROR_ILLEGALCMD   4
+#define XSVF_ERROR_ILLEGALSTATE 5
+#define XSVF_ERROR_DATAOVERFLOW 6   /* Data > lenVal MAX_LEN buffer size*/
+/* Insert new errors here */
+#define XSVF_ERROR_LAST         7
 
-    const char*   xsvf_pzTapState[] =
-    {
-        "RESET",        /* 0x00 */
-        "RUNTEST/IDLE", /* 0x01 */
-        "DRSELECT",     /* 0x02 */
-        "DRCAPTURE",    /* 0x03 */
-        "DRSHIFT",      /* 0x04 */
-        "DREXIT1",      /* 0x05 */
-        "DRPAUSE",      /* 0x06 */
-        "DREXIT2",      /* 0x07 */
-        "DRUPDATE",     /* 0x08 */
-        "IRSELECT",     /* 0x09 */
-        "IRCAPTURE",    /* 0x0A */
-        "IRSHIFT",      /* 0x0B */
-        "IREXIT1",      /* 0x0C */
-        "IRPAUSE",      /* 0x0D */
-        "IREXIT2",      /* 0x0E */
-        "IRUPDATE"      /* 0x0F */
-    };
-#endif  /* DEBUG_MODE */
 
-#ifdef DEBUG_MODE
-    FILE* in;   /* Legacy DEBUG_MODE file pointer */
-    int xsvf_iDebugLevel = 0;
-#endif /* DEBUG_MODE */
+/*****************************************************************************
+* Define:       XSVF_SUPPORT_COMPRESSION
+* Description:  Define this to support the XC9500/XL XSVF data compression
+*               scheme.
+*               Code size can be reduced by NOT supporting this feature.
+*               However, you must use the -nc (no compress) option when
+*               translating SVF to XSVF using the SVF2XSVF translator.
+*               Corresponding, uncompressed XSVF may be larger.
+*****************************************************************************/
+#ifndef XSVF_SUPPORT_COMPRESSION
+    #define XSVF_SUPPORT_COMPRESSION    1
+#endif
 
+
+typedef struct tagSXsvfInfo
+{
+    unsigned int readPointer;
+    
+    //int devDescriptor;
+
+	/* XSVF status information */
+    unsigned char   ucComplete;         /* 0 = running; 1 = complete */
+    unsigned char   ucCommand;          /* Current XSVF command byte */
+    long            lCommandCount;      /* Number of commands processed */
+    int             iErrorCode;         /* An error code. 0 = no error. */
+
+    /* TAP state/sequencing information */
+    unsigned char   ucTapState;         /* Current TAP state */
+    unsigned char   ucEndIR;            /* ENDIR TAP state (See SVF) */
+    unsigned char   ucEndDR;            /* ENDDR TAP state (See SVF) */
+
+    /* RUNTEST information */
+    unsigned char   ucMaxRepeat;        /* Max repeat loops (for xc9500/xl) */
+    long            lRunTestTime;       /* Pre-specified RUNTEST time (usec) */
+
+    /* Shift Data Info and Buffers */
+    long            lShiftLengthBits;   /* Len. current shift data in bits */
+    short           sShiftLengthBytes;  /* Len. current shift data in bytes */
+
+    lenVal          lvTdi;              /* Current TDI shift data */
+    lenVal          lvTdoExpected;      /* Expected TDO shift data */
+    lenVal          lvTdoCaptured;      /* Captured TDO shift data */
+    lenVal          lvTdoMask;          /* TDO mask: 0=dontcare; 1=compare */
+
+#ifdef  XSVF_SUPPORT_COMPRESSION
+    /* XSDRINC Data Buffers */
+    lenVal          lvAddressMask;      /* Address mask for XSDRINC */
+    lenVal          lvDataMask;         /* Data mask for XSDRINC */
+    lenVal          lvNextData;         /* Next data for XSDRINC */
+#endif  /* XSVF_SUPPORT_COMPRESSION */
+} SXsvfInfo;
+    
 #endif	/* XSVFPLAYERCONSTANTS_H */
 

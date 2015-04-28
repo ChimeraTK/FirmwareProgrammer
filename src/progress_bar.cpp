@@ -8,12 +8,11 @@ int last_value = 0;
 
 int my_putchar(int c)
 {
-    putchar(c);
+    return putchar(c);
 }
 
-int ProgressBar(double TotalToDownload, double NowDownloaded)
+void ProgressBar(double TotalToDownload, double NowDownloaded)
 {
-//    return 0;
     int total_barlength;
     int col;
     struct winsize size;

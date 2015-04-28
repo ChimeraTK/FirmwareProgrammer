@@ -6,7 +6,6 @@
         <in>XSVFPlayer.h</in>
         <in>XSVFPlayerConstants.h</in>
         <in>XSVFPlayerInterface.h</in>
-        <in>micro.h</in>
       </df>
       <df name="src">
         <in>MtcaProgrammerBase.cpp</in>
@@ -62,8 +61,6 @@
       <item path="include/XSVFPlayerConstants.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/XSVFPlayerInterface.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/micro.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/MtcaProgrammerBase.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">

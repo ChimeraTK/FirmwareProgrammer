@@ -12,16 +12,38 @@
 
 #include "MtcaProgrammerBase.h"
 #include "progress_bar.h"
-#include "spi_prom_commands.h"
+#include "registers.h"
 
-const uint8_t MtcaProgrammerSPI::bit_pattern[14] = {0x00, 0x09, 0x0F, 0xF0, 0x0F, 0xF0, 0x0F, 0xF0, 0x0F, 0xF0, 0x00, 0x00, 0x01, 0x61};
-
+/*************************************************************************************/
+/* Identifiers of known PROM memories mounted on boards supported by the programmer  */
+/* If you want to add new supported memory, modify this map                          */
+/*************************************************************************************/
 const std::map<uint64_t, addressing_mode_t> MtcaProgrammerSPI::known_proms = {
     {0x0103182001, PROM_ADDR_24B},        //old uTC versions
     {0x014d190201, PROM_ADDR_32B},        //TCK7
     {0x00001740EF, PROM_ADDR_24B},        //SIS8300L
 };
+/*************************************************************************************/
 
+const uint8_t MtcaProgrammerSPI::bit_pattern[14] = {0x00, 0x09, 0x0F, 0xF0, 0x0F, 0xF0, 0x0F, 0xF0, 0x0F, 0xF0, 0x00, 0x00, 0x01, 0x61};
+
+const std::map<std::string, std::pair<uint32_t, uint32_t> > commands= {
+    //Name              24b     32b
+    {"PAGE_PROGRAM",    {0x02,  0x12}},
+    {"FAST_READ",       {0x0B,  0x0C}},
+    {"WRITE_DISABLE",   {0x04,  0x04}},
+};
+
+inline uint32_t getCommand(std::string command_name, addressing_mode_t addr_mode)
+{
+    std::pair<uint32_t, uint32_t> value = commands.at(command_name);
+    if(addr_mode == PROM_ADDR_24B)
+        return value.first;
+    else
+        return value.second;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 MtcaProgrammerSPI::MtcaProgrammerSPI(mtcaDevPtr dev, uint32_t base_address, uint8_t bar) 
     : MtcaProgrammerBase(dev, base_address, bar){
 }
@@ -63,29 +85,38 @@ bool MtcaProgrammerSPI::checkFirmwareFile(std::string firmwareFile)
     return ret;
 }
 
-void MtcaProgrammerSPI::initialize()
+void MtcaProgrammerSPI::erase()
 {
-    mDevPtr->writeReg(regAddress(spi_divider), 10, mProgBar);
+    mDevPtr->writeReg(regAddress(REG_SPI_DIVIDER), 10, mProgBar);
     
     uint64_t memID = getMemoryId();
     if(!checkMemoryId(memID))
         throw "Unknown, not present or busy SPI prom 1\n\n";
-}
-
-void MtcaProgrammerSPI::erase()
-{
+    
     memoryWriteEnable();
     memoryBulkErase();
 }
 
 void MtcaProgrammerSPI::program(std::string firmwareFile)
 {
+    mDevPtr->writeReg(regAddress(REG_SPI_DIVIDER), 10, mProgBar);
+    
+    uint64_t memID = getMemoryId();
+    if(!checkMemoryId(memID))
+        throw "Unknown, not present or busy SPI prom 1\n\n";
+    
     memoryWriteEnable();
     programMemory(firmwareFile);
 }
 
 bool MtcaProgrammerSPI::verify(std::string firmwareFile)
 {
+    mDevPtr->writeReg(regAddress(REG_SPI_DIVIDER), 10, mProgBar);
+    
+    uint64_t memID = getMemoryId();
+    if(!checkMemoryId(memID))
+        throw "Unknown, not present or busy SPI prom 1\n\n";
+    
     unsigned char buffer[1024];
     int32_t data;
     unsigned int bread;
@@ -120,18 +151,18 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile)
             return true;
         }
 
-        mDevPtr->writeReg(regAddress (write_data), getCommand("FAST_READ", addr_mode) /*0x12*/, mProgBar);
+        mDevPtr->writeReg(regAddress (AREA_WRITE), getCommand("FAST_READ", addr_mode) /*0x12*/, mProgBar);
         uint32_t reg_offset = writeAddress(addr, addr_mode);
-        mDevPtr->writeReg(regAddress(bytes_write), reg_offset, mProgBar); // 5 bytes + dummy
+        mDevPtr->writeReg(regAddress(REG_BYTES_TO_WRITE), reg_offset, mProgBar); // 5 bytes + dummy
 
         //  wait for operation end
-        mDevPtr->writeReg(regAddress(bytes_read), bread-1, mProgBar);
-        mDevPtr->writeReg(regAddress(control), (PCIE_V5 | SPI_PROG | SPI_R_NW | SPI_START), mProgBar);
+        mDevPtr->writeReg(regAddress(REG_BYTES_TO_READ), bread-1, mProgBar);
+        mDevPtr->writeReg(regAddress(REG_CONTROL), (PCIE_V5 | SPI_PROG | SPI_R_NW | SPI_START), mProgBar);
         waitForSpi();
 		
         for (unsigned int i = 0; i < 1024; i++)
         {
-            mDevPtr->readReg(regAddress(read_data) + 4 * i, &data, mProgBar);
+            mDevPtr->readReg(regAddress(AREA_READ) + 4 * i, &data, mProgBar);
             if(buffer[i] != (data & 0xff))
             {
                 fprintf(stderr,"\nVerify error at address %u: read 0x%02x instead of 0x%02x\n",
@@ -154,10 +185,10 @@ uint64_t MtcaProgrammerSPI::getMemoryId()
     
     for(int i = 0; i < 2; i++)   // first read returns garbage
     {
-        mDevPtr->writeReg(regAddress(write_data), 0x9f, mProgBar);
-        mDevPtr->writeReg(regAddress(bytes_write), 0x00, mProgBar);
-        mDevPtr->writeReg(regAddress(bytes_read), 0x04, mProgBar);
-        mDevPtr->writeReg(regAddress(control), (PCIE_V5 | SPI_PROG | SPI_R_NW | SPI_START), mProgBar);
+        mDevPtr->writeReg(regAddress(AREA_WRITE), 0x9f, mProgBar);
+        mDevPtr->writeReg(regAddress(REG_BYTES_TO_WRITE), 0x00, mProgBar);
+        mDevPtr->writeReg(regAddress(REG_BYTES_TO_READ), 0x04, mProgBar);
+        mDevPtr->writeReg(regAddress(REG_CONTROL), (PCIE_V5 | SPI_PROG | SPI_R_NW | SPI_START), mProgBar);
         waitForSpi();
     }
     
@@ -165,7 +196,7 @@ uint64_t MtcaProgrammerSPI::getMemoryId()
     for(int i = 0; i < 5; i++)
     {
         int32_t id_val;
-        mDevPtr->readReg(regAddress(read_data) + 4 * i, &id_val, mProgBar);
+        mDevPtr->readReg(regAddress(AREA_READ) + 4 * i, &id_val, mProgBar);
         mem_id |= ((uint64_t)id_val & 0xFF) << (i * 8);
     }
     
@@ -191,7 +222,7 @@ void MtcaProgrammerSPI::waitForSpi()
     unsigned int i=0;
     do
     {
-        mDevPtr->readReg(regAddress(control), &data, mProgBar);
+        mDevPtr->readReg(regAddress(REG_CONTROL), &data, mProgBar);
         usleep(1);
         if(i++ == 10000) 
             throw("Timeout waiting for SPI completion\nTry rescanning PCIe bus\n");
@@ -201,7 +232,6 @@ void MtcaProgrammerSPI::waitForSpi()
 
 uint32_t MtcaProgrammerSPI::writeAddress(uint32_t address, addressing_mode_t addr_mode)
 {
-    uint32_t ret_offset = 0;
     uint32_t addr_len = 0;
     
     if(addr_mode == PROM_ADDR_24B) addr_len = 3;
@@ -209,34 +239,18 @@ uint32_t MtcaProgrammerSPI::writeAddress(uint32_t address, addressing_mode_t add
     
     for(uint i = addr_len; i > 0; i--)
     {
-        mDevPtr->writeReg(regAddress (write_data) + 4 * i, address & 0xff, mProgBar);
+        mDevPtr->writeReg(regAddress (AREA_WRITE) + 4 * i, address & 0xff, mProgBar);
         address = address >> 8;
     }
-#if 0    
-    if(addr_mode == PROM_ADDR_32B)
-    {
-        mDevPtr->writeReg(regAddress (write_data) + 4, (address >> 24) & 0xff, BAR_NR);
-        mDevPtr->writeReg(regAddress (write_data) + 8, (address >> 16) & 0xff, BAR_NR);
-        mDevPtr->writeReg(regAddress (write_data) + 12,(address >>  8) & 0xff, BAR_NR);
-        mDevPtr->writeReg(regAddress (write_data) + 16,(address >>  0) & 0xff, BAR_NR);
-        ret_offset = 5;
-    }
-    else if(addr_mode == PROM_ADDR_24B)
-    {
-        mDevPtr->writeReg(regAddress (write_data) + 4, (address >> 16) & 0xff, BAR_NR);
-        mDevPtr->writeReg(regAddress (write_data) + 8, (address >>  8) & 0xff, BAR_NR);
-        mDevPtr->writeReg(regAddress (write_data) + 12,(address >>  0) & 0xff, BAR_NR);
-        ret_offset = 4;
-    }
-#endif    
+    
     return addr_len + 1;
 }
 
 void MtcaProgrammerSPI::memoryWriteEnable()
 {
-    mDevPtr->writeReg(regAddress(write_data), 0x06, mProgBar);
-    mDevPtr->writeReg(regAddress(bytes_write), 0x0, mProgBar);
-    mDevPtr->writeReg(regAddress(control), (PCIE_V5 | SPI_PROG  | SPI_START), mProgBar);
+    mDevPtr->writeReg(regAddress(AREA_WRITE), 0x06, mProgBar);
+    mDevPtr->writeReg(regAddress(REG_BYTES_TO_WRITE), 0x0, mProgBar);
+    mDevPtr->writeReg(regAddress(REG_CONTROL), (PCIE_V5 | SPI_PROG  | SPI_START), mProgBar);
     waitForSpi();
 }
 
@@ -247,8 +261,8 @@ void MtcaProgrammerSPI::memoryBulkErase()
     double progress = 0;
 
     printf ("\nBulk erase\n");
-    mDevPtr->writeReg(regAddress(write_data), 0xc7, mProgBar);
-    mDevPtr->writeReg(regAddress (control),(PCIE_V5 | SPI_PROG | SPI_START), mProgBar); 
+    mDevPtr->writeReg(regAddress(AREA_WRITE), 0xc7, mProgBar);
+    mDevPtr->writeReg(regAddress (REG_CONTROL),(PCIE_V5 | SPI_PROG | SPI_START), mProgBar); 
     waitForSpi();
 
     do
@@ -269,11 +283,11 @@ void MtcaProgrammerSPI::memoryBulkErase()
 int32_t MtcaProgrammerSPI::readStatus()
 {
     int32_t data;
-    mDevPtr->writeReg(regAddress (bytes_read), 0x0, mProgBar);
-    mDevPtr->writeReg(regAddress (write_data), 0x05, mProgBar);
-    mDevPtr->writeReg(regAddress (control), (PCIE_V5 | SPI_PROG | SPI_R_NW | SPI_START), mProgBar);
+    mDevPtr->writeReg(regAddress (REG_BYTES_TO_READ), 0x0, mProgBar);
+    mDevPtr->writeReg(regAddress (AREA_WRITE), 0x05, mProgBar);
+    mDevPtr->writeReg(regAddress (REG_CONTROL), (PCIE_V5 | SPI_PROG | SPI_R_NW | SPI_START), mProgBar);
     waitForSpi();
-    mDevPtr->readReg(regAddress (read_data), &data, mProgBar);
+    mDevPtr->readReg(regAddress (AREA_READ), &data, mProgBar);
 
     return data;
 }
@@ -323,16 +337,16 @@ void MtcaProgrammerSPI::programMemoryPage(unsigned int address, unsigned int siz
     unsigned int data;
 
 //    printf("Programming flash at address %x\n",address);
-    mDevPtr->writeReg(regAddress (write_data), getCommand("PAGE_PROGRAM", addr_mode) /*0x12*/, mProgBar);
+    mDevPtr->writeReg(regAddress (AREA_WRITE), getCommand("PAGE_PROGRAM", addr_mode) /*0x12*/, mProgBar);
     uint32_t reg_offset = writeAddress(address, addr_mode);
     for (unsigned int i = 0; i < size; i++)
     {
-        mDevPtr->writeReg(regAddress (write_data) + (reg_offset + i) * 4, buffer[i], mProgBar);
+        mDevPtr->writeReg(regAddress (AREA_WRITE) + (reg_offset + i) * 4, buffer[i], mProgBar);
         //printf("Data: 0x%x %d\n", buffer[i], i );
     }
 
-    mDevPtr->writeReg(regAddress(bytes_write), size + reg_offset - 1, mProgBar);
-    mDevPtr->writeReg(regAddress(control), (PCIE_V5 | SPI_PROG | SPI_START), mProgBar);
+    mDevPtr->writeReg(regAddress(REG_BYTES_TO_WRITE), size + reg_offset - 1, mProgBar);
+    mDevPtr->writeReg(regAddress(REG_CONTROL), (PCIE_V5 | SPI_PROG | SPI_START), mProgBar);
     waitForSpi();
     do
     {

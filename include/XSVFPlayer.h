@@ -9,25 +9,25 @@
 #define	XSVFPLAYER_H
 
 #include "MtcaProgrammerBase.h"
-#include "micro.h"
 #include "XSVFPlayerInterface.h"
+#include "XSVFPlayerConstants.h"
 
 class XSVFPlayer {
 public:
-    XSVFPlayer(XSVFPlayerInterface *interface, FILE* file);
+    XSVFPlayer(XSVFPlayerInterface &interface);
     virtual ~XSVFPlayer();
     
-    void initialize();
-    void run();
+    void run(std::string file);
 private:
-    XSVFPlayerInterface *mInterface;
+    XSVFPlayerInterface &mInterface;
     FILE* mFile;
     SXsvfInfo sxvfInfo;
     int commandCounter; 
     int totalCommandCounter;
     bool dummy_xsvf_player;
     
-    void readVal( lenVal*   plv, short     sNumBytes );
+    void readByte(unsigned char *data);
+    void readVal(lenVal *plv, short sNumBytes);
     short xsvfGetAsNumBytes( long lNumBits );
     
     int xsvfInitialize( SXsvfInfo* pXsvfInfo );

@@ -2,6 +2,8 @@
 <configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="." name="0">
+      <df name="doc">
+      </df>
       <df name="include">
         <in>MtcaProgrammerBase.h</in>
         <in>MtcaProgrammerJTAG.h</in>
@@ -9,12 +11,9 @@
         <in>XSVFPlayer.h</in>
         <in>XSVFPlayerConstants.h</in>
         <in>XSVFPlayerInterface.h</in>
-        <in>global.h</in>
-        <in>ii_constants.h</in>
         <in>lenval.h</in>
-        <in>micro.h</in>
         <in>progress_bar.h</in>
-        <in>spi_prom_commands.h</in>
+        <in>registers.h</in>
       </df>
       <df name="obj">
       </df>

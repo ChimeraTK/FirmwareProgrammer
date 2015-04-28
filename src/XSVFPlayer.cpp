@@ -10,64 +10,118 @@
 #include "MtcaProgrammerJTAG.h"
 #include "XSVFPlayerConstants.h"
 
-#define SET_PORT(PORT, VAL) { if(!dummy_xsvf_player) mInterface->setPort(PORT, VAL); }
-#define WAIT_TIME(MICROSEC) { if(!dummy_xsvf_player) mInterface->waitTime(MICROSEC); }
-#define READ_TDO_BIT ((dummy_xsvf_player) ? 0 : mInterface->readTDOBit())
+#define SET_PORT(PORT, VAL) { if(!dummy_xsvf_player) mInterface.setPort(PORT, VAL); }
+#define WAIT_TIME(MICROSEC) { if(!dummy_xsvf_player) mInterface.waitTime(MICROSEC); }
+#define READ_TDO_BIT ((dummy_xsvf_player) ? 0 : mInterface.readTDOBit())
+
+#ifdef  DEBUG_MODE
+    const char* xsvf_pzCommandName[]  =
+    {
+        "XCOMPLETE",
+        "XTDOMASK",
+        "XSIR",
+        "XSDR",
+        "XRUNTEST",
+        "Reserved5",
+        "Reserved6",
+        "XREPEAT",
+        "XSDRSIZE",
+        "XSDRTDO",
+        "XSETSDRMASKS",
+        "XSDRINC",
+        "XSDRB",
+        "XSDRC",
+        "XSDRE",
+        "XSDRTDOB",
+        "XSDRTDOC",
+        "XSDRTDOE",
+        "XSTATE",
+        "XENDIR",
+        "XENDDR",
+        "XSIR2",
+        "XCOMMENT",
+        "XWAIT"
+    };
+
+    const char*   xsvf_pzErrorName[]  =
+    {
+        "No error",
+        "ERROR:  Unknown",
+        "ERROR:  TDO mismatch",
+        "ERROR:  TDO mismatch and exceeded max retries",
+        "ERROR:  Unsupported XSVF command",
+        "ERROR:  Illegal state specification",
+        "ERROR:  Data overflows allocated MAX_LEN buffer size"
+    };
+
+    const char*   xsvf_pzTapState[] =
+    {
+        "RESET",        /* 0x00 */
+        "RUNTEST/IDLE", /* 0x01 */
+        "DRSELECT",     /* 0x02 */
+        "DRCAPTURE",    /* 0x03 */
+        "DRSHIFT",      /* 0x04 */
+        "DREXIT1",      /* 0x05 */
+        "DRPAUSE",      /* 0x06 */
+        "DREXIT2",      /* 0x07 */
+        "DRUPDATE",     /* 0x08 */
+        "IRSELECT",     /* 0x09 */
+        "IRCAPTURE",    /* 0x0A */
+        "IRSHIFT",      /* 0x0B */
+        "IREXIT1",      /* 0x0C */
+        "IRPAUSE",      /* 0x0D */
+        "IREXIT2",      /* 0x0E */
+        "IRUPDATE"      /* 0x0F */
+    };
+#endif  /* DEBUG_MODE */
+
+#ifdef DEBUG_MODE
+    FILE* in;   /* Legacy DEBUG_MODE file pointer */
+    int xsvf_iDebugLevel = 0;
+#endif /* DEBUG_MODE */
 
 const char* ERROR_CODES_MICRO_H[] = {"XSVF_ERROR_NONE","XSVF_ERROR_UNKNOWN","XSVF_ERROR_TDOMISMATCH","XSVF_ERROR_MAXRETRIES","XSVF_ERROR_ILLEGALCMD","XSVF_ERROR_ILLEGALSTATE","XSVF_ERROR_DATAOVERFLOW"};
 
-XSVFPlayer::XSVFPlayer(XSVFPlayerInterface *interface, FILE* file) :
+XSVFPlayer::XSVFPlayer(XSVFPlayerInterface &interface) :
     mInterface(interface),
-    mFile(file),
-    dummy_xsvf_player(false),
+    mFile(NULL),
+    sxvfInfo(),
     commandCounter(0),
-    totalCommandCounter(0)
+    totalCommandCounter(0),
+    dummy_xsvf_player(false)
 {
 }
 
 XSVFPlayer::~XSVFPlayer() {
 }
 
-void XSVFPlayer::initialize()
+void XSVFPlayer::run(std::string file)
 {
-/*    xsvfInitialize(&sxvfInfo);
-    dummy_xsvf_player = true;
-    do {
-        commandCounter++;
-        xsvfRun(&sxvfInfo);
-        //if(sxvfInfo.iErrorCode != XSVF_ERROR_NONE) break;
+    mFile = fopen(file.c_str(),"r");
+    if (!mFile)
+    {
+        throw "Cannot open xsfv file";
     }
-    while(sxvfInfo.ucComplete == 0);
-    totalCommandCounter = commandCounter;
-    printf("totalCommandCounter=%d, commandCounter=%d\n", totalCommandCounter, commandCounter);
-    dummy_xsvf_player = false;*/
-}
-
-void XSVFPlayer::run()
-{
+    
+    //run dummy programming to calculate the total number of commands
     commandCounter = 0;
-    totalCommandCounter=1;
-
-    //dummy xsvf_player------------------------
+    totalCommandCounter = 0;
     dummy_xsvf_player = true;
 
-#if 1	
     xsvfInitialize(&sxvfInfo);
     do {
         commandCounter++;
         xsvfRun(&sxvfInfo);
-        //if(sxvfInfo.iErrorCode != XSVF_ERROR_NONE) break;
     }
     while(sxvfInfo.ucComplete == 0);
     totalCommandCounter = commandCounter;
- //   fclose(xsvf_player_fp);
-    //-----------------------------------------
-#endif
-	
-    dummy_xsvf_player = 0;
-    commandCounter = 0;
-    fseek(mFile, 0, SEEK_SET);
 
+    fseek(mFile, 0, SEEK_SET);
+    
+    //run real programming
+    dummy_xsvf_player = false;
+    commandCounter = 0;
+    
     xsvfInitialize(&sxvfInfo);
     do {
         commandCounter++;
@@ -82,10 +136,19 @@ void XSVFPlayer::run()
     while(sxvfInfo.ucComplete == 0);
     ProgressBar(totalCommandCounter, totalCommandCounter);
     
+    fclose(mFile);  
+    mFile = NULL;
+    
     if(sxvfInfo.iErrorCode != XSVF_ERROR_NONE)
         throw ERROR_CODES_MICRO_H[sxvfInfo.iErrorCode];
 }
 
+/* readByte:  Implement to source the next byte from your XSVF file location */
+/* read in a byte of data from the prom */
+void XSVFPlayer::readByte (unsigned char *data)
+{
+    *data = fgetc(mFile);
+}
 
 /*****************************************************************************
 * Function:     readVal
@@ -102,7 +165,7 @@ void XSVFPlayer::readVal( lenVal* plv, short sNumBytes )
     for ( pucVal = plv->val; sNumBytes; --sNumBytes, ++pucVal )
     {
         /* read a byte of data into the lenVal */
-        mInterface->readByte( pucVal );
+        readByte( pucVal );
     }
 }
 
@@ -185,16 +248,6 @@ int XSVFPlayer::xsvfInfoInit( SXsvfInfo* pXsvfInfo )
     pXsvfInfo->lRunTestTime     = 0L;
 
     return( 0 );
-}
-
-/*****************************************************************************
-* Function:     xsvfInfoCleanup
-* Description:  Cleanup the xsvfInfo data.
-* Parameters:   pXsvfInfo   - ptr to the XSVF info structure.
-* Returns:      void.
-*****************************************************************************/
-void XSVFPlayer::xsvfInfoCleanup( SXsvfInfo* pXsvfInfo )
-{
 }
 
 /*****************************************************************************
@@ -848,7 +901,7 @@ int XSVFPlayer::xsvfDoXSIR( SXsvfInfo* pXsvfInfo )
     int             iErrorCode;
 
     /* Get the shift length and store */
-    mInterface->readByte( &ucShiftIrBits);
+    readByte( &ucShiftIrBits);
     sShiftIrBytes   = xsvfGetAsNumBytes( ucShiftIrBits );
     XSVFDBG_PRINTF1( 3, "   XSIR length = %d\n",
                      ((unsigned int)ucShiftIrBits) );
@@ -974,7 +1027,7 @@ int XSVFPlayer::xsvfDoXRUNTEST( SXsvfInfo* pXsvfInfo )
 *****************************************************************************/
 int XSVFPlayer::xsvfDoXREPEAT( SXsvfInfo* pXsvfInfo )
 {
-    mInterface->readByte( &(pXsvfInfo->ucMaxRepeat) );
+    readByte( &(pXsvfInfo->ucMaxRepeat) );
     XSVFDBG_PRINTF1( 3, "   XREPEAT = %d\n",
                      ((unsigned int)(pXsvfInfo->ucMaxRepeat)) );
     return( XSVF_ERROR_NONE );
@@ -1108,7 +1161,7 @@ int XSVFPlayer::xsvfDoXSDRINC( SXsvfInfo* pXsvfInfo )
         }
 
         /* Get the number of data pieces, i.e. number of times to shift */
-        mInterface->readByte( &ucNumTimes );
+        readByte( &ucNumTimes );
 
         /* For numTimes, get data, fix TDI, and shift */
         for ( i = 0; !iErrorCode && ( i < ucNumTimes ); ++i )
@@ -1214,7 +1267,7 @@ int XSVFPlayer::xsvfDoXSTATE( SXsvfInfo* pXsvfInfo )
 {
     unsigned char   ucNextState;
     int             iErrorCode;
-    mInterface->readByte( &ucNextState );
+    readByte( &ucNextState );
     iErrorCode  = xsvfGotoTapState( &(pXsvfInfo->ucTapState), ucNextState );
     if ( iErrorCode != XSVF_ERROR_NONE )
     {
@@ -1238,7 +1291,7 @@ int XSVFPlayer::xsvfDoXENDXR( SXsvfInfo* pXsvfInfo )
     unsigned char   ucEndState;
 
     iErrorCode  = XSVF_ERROR_NONE;
-    mInterface->readByte( &ucEndState );
+    readByte( &ucEndState );
     if ( ( ucEndState != XENDXR_RUNTEST ) && ( ucEndState != XENDXR_PAUSE ) )
     {
         iErrorCode  = XSVF_ERROR_ILLEGALSTATE;
@@ -1302,7 +1355,7 @@ int XSVFPlayer::xsvfDoXCOMMENT( SXsvfInfo* pXsvfInfo )
 
     do
     {
-        mInterface->readByte( &ucText );
+        readByte( &ucText );
         if ( xsvf_iDebugLevel > 0 )
         {
             putchar( ucText ? ucText : '\n' );
@@ -1410,7 +1463,7 @@ int XSVFPlayer::xsvfRun( SXsvfInfo* pXsvfInfo )
     if ( (dummy_xsvf_player || (!pXsvfInfo->iErrorCode)) && (!pXsvfInfo->ucComplete) )
     {
         /* read 1 byte for the instruction */
-        mInterface->readByte( &(pXsvfInfo->ucCommand) );
+        readByte( &(pXsvfInfo->ucCommand) );
         ++(pXsvfInfo->lCommandCount);
 
         if ( pXsvfInfo->ucCommand < XLASTCMD )
@@ -1430,15 +1483,4 @@ int XSVFPlayer::xsvfRun( SXsvfInfo* pXsvfInfo )
     }
 
     return( pXsvfInfo->iErrorCode );
-}
-
-/*****************************************************************************
-* Function:     xsvfCleanup
-* Description:  cleanup remnants of the xsvf player.
-* Parameters:   pXsvfInfo   - ptr to the XSVF information.
-* Returns:      void.
-*****************************************************************************/
-void XSVFPlayer::xsvfCleanup( SXsvfInfo* pXsvfInfo )
-{
-    xsvfInfoCleanup( pXsvfInfo );
 }

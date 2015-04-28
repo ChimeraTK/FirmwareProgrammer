@@ -11,16 +11,11 @@
 #include "MtcaProgrammerBase.h"
 
 #include <map>
-#include "spi_prom_commands.h"
 
-//bits in FPGA control register
-#define SPI_START		0x00000001	//start spi operation
-#define SPI_R_NW		0x00000002	//SPI read/write (0 - write, 1 - read)
-#define DSP_SPI_BOOT		0x00000008	//DSP_boot source (1 - boot from SPI)
-#define SPI_PROG		0x00000010	//0 - DSP, 1 - SPI
-#define PCIE_V5			0x00000020	//PCIE mux (0 - RTM, 1 - V5)
-#define SPIREADER_RESET		0x08000000
-#define DSP_RESET		0x80000000
+typedef enum {
+    PROM_ADDR_24B,
+    PROM_ADDR_32B,
+} addressing_mode_t;
 
 class MtcaProgrammerSPI : public MtcaProgrammerBase{
 public:
@@ -28,7 +23,6 @@ public:
     virtual ~MtcaProgrammerSPI();
     
     bool checkFirmwareFile(std::string firmwareFile);
-    void initialize();
     void erase();
     void program(std::string firmwareFile);
     bool verify(std::string firmwareFile);

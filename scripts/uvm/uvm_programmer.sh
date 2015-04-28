@@ -51,8 +51,8 @@ fi
 
 old_jtag_sett=$cmd_output
 new_jtag_sett=$(( $old_jtag_sett | 0x10))
-printf "0x%x\n" $old_jtag_sett
-printf "0x%x\n" $new_jtag_sett
+#printf "0x%x\n" $old_jtag_sett
+#printf "0x%x\n" $new_jtag_sett
 
 # Switch JTAG to be controlled by the FPGA
 cmd_output=$(ipmitool -I lan -H $MCH -P "" -B 0 -T 0x82 -b 7 -t $GEO_ADDR raw 0x30 0x03 0x08 $new_jtag_sett 2>&1)

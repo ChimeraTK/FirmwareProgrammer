@@ -13,8 +13,6 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include "ii_constants.h"
-
 typedef boost::shared_ptr<mtca4u::devBase> mtcaDevPtr;
 
 class MtcaProgrammerBase {
@@ -23,7 +21,6 @@ public:
     virtual ~MtcaProgrammerBase();
     
     virtual bool checkFirmwareFile(std::string firmwareFile) = 0;
-    virtual void initialize() = 0;
     virtual void erase() = 0;
     virtual void program(std::string firmwareFile) = 0;
     virtual bool verify(std::string firmwareFile) = 0;
