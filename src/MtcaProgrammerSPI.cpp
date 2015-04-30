@@ -106,6 +106,7 @@ void MtcaProgrammerSPI::program(std::string firmwareFile)
         throw "Unknown, not present or busy SPI prom 1\n\n";
     
     memoryWriteEnable();
+    enableQuadMode();
     programMemory(firmwareFile);
 }
 
@@ -290,6 +291,26 @@ int32_t MtcaProgrammerSPI::readStatus()
     mDevPtr->readReg(regAddress (AREA_READ), &data, mProgBar);
 
     return data;
+}
+
+void MtcaProgrammerSPI::enableQuadMode()
+{
+    int32_t data;
+    //read current value of configuration register
+    mDevPtr->writeReg(regAddress (REG_BYTES_TO_READ), 0x0, mProgBar);
+    mDevPtr->writeReg(regAddress (AREA_WRITE), 0x35, mProgBar);         //command 'Read Configuration Register'
+    mDevPtr->writeReg(regAddress (REG_CONTROL), (PCIE_V5 | SPI_PROG | SPI_R_NW | SPI_START), mProgBar);
+    waitForSpi();
+    mDevPtr->readReg(regAddress (AREA_READ), &data, mProgBar);
+    
+    data |= 0x02;
+    
+    mDevPtr->writeReg(regAddress(AREA_WRITE), 0x01, mProgBar);      //command 'Write Register'
+    mDevPtr->writeReg(regAddress(AREA_WRITE) + 4, 0x00, mProgBar);  
+    mDevPtr->writeReg(regAddress(AREA_WRITE) + 8, data, mProgBar);
+    mDevPtr->writeReg(regAddress(REG_BYTES_TO_WRITE), 0x02, mProgBar);
+    mDevPtr->writeReg(regAddress(REG_CONTROL), (PCIE_V5 | SPI_PROG | SPI_START), mProgBar);
+    waitForSpi();
 }
 
 void MtcaProgrammerSPI::programMemory(std::string firmwareFile)
