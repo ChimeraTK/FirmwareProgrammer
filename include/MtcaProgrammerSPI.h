@@ -14,7 +14,7 @@
 
 typedef enum {
     PROM_ADDR_24B,
-    PROM_ADDR_32B,
+    PROM_ADDR_32B
 } addressing_mode_t;
 
 class MtcaProgrammerSPI : public MtcaProgrammerBase{
@@ -40,6 +40,7 @@ private:
     void memoryBulkErase();
     void programMemory(std::string firmwareFile);
     void programMemoryPage(unsigned int address, unsigned int size, char *buffer, addressing_mode_t addr_mode);
+    long int findDataOffset(FILE *file);
 };
 
 #endif	/* MTCAPROGRAMMERSPI_H */

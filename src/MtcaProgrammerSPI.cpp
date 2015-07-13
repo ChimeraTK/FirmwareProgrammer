@@ -124,6 +124,7 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile)
     unsigned int bread;
     unsigned int addr = 0;
     unsigned int file_size;
+    long int offset = 0;
     FILE *f = fopen (firmwareFile.c_str(), "rb");
 
     printf ("\nVerification\n");
@@ -131,9 +132,13 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile)
     if (!f)
         throw "cannot open input file";
 
+    offset = findDataOffset(f);
+    if(offset == -1)
+        throw "cannot find start sequence in the file";
+    
     fseek(f, 0, SEEK_END);
     file_size = ftell(f);
-    fseek(f, 0, SEEK_SET);
+    fseek(f, offset, SEEK_SET);
     
     uint64_t mem_id = getMemoryId();
     addressing_mode_t addr_mode = known_proms.at(mem_id);
@@ -314,12 +319,57 @@ void MtcaProgrammerSPI::enableQuadMode()
     waitForSpi();
 }
 
+/** Searching for the end of bitstream header. Counting the offset for program_mem and verify_mem functions
+    Return int offset - number of bytes of header to ommit. Returns 0 if no header found.
+    Returns -1 if no binary start sequence (0xAA995566) found. */
+long int MtcaProgrammerSPI::findDataOffset(FILE *file)
+{
+    unsigned char buffer[512];
+    int offset = -1;
+    const unsigned char c1 = 0xaa;
+    const unsigned char c2 = 0x99;
+    const unsigned char c3 = 0x55;
+    const unsigned char c4 = 0x66;
+    const unsigned char c0 = 0xff;
+
+    if(!file)
+        return -1;
+
+    fseek(file, 0, SEEK_SET);
+    fread(buffer, 1, 512, file);
+    fseek(file, 0, SEEK_SET);
+
+    /* ok if header shorter than 512 bytes  */
+    for(int i = 0; i < 512; i++)
+    {
+        if((buffer[i] == c1) && (buffer[i+1] == c2) && (buffer[i+2] == c3) && (buffer[i+3] == c4))
+        {
+            for(int j = 1; j < i + 1; j++)
+            {
+                if(buffer[i-j] != c0)
+                {
+                    i = i - (j - (j % 16));
+                    break;
+                }
+                if(j == i) 
+                    i = i - (j - (j % 16));
+            }
+
+            offset = i;
+            break;
+        }	
+    }
+    
+    return offset;
+}
+
 void MtcaProgrammerSPI::programMemory(std::string firmwareFile)
 {
     char buffer[256];
     unsigned int bread;
     unsigned int addr = 0;
     unsigned int file_size;
+    long int offset = 0;
     FILE *f = fopen (firmwareFile.c_str(), "rb");
 
     printf ("\nProgramming\n");
@@ -327,9 +377,13 @@ void MtcaProgrammerSPI::programMemory(std::string firmwareFile)
     if (!f)
         throw "cannot open input file";
 
+    offset = findDataOffset(f);
+    if(offset == -1)
+        throw "cannot find start sequence in the file";
+    
     fseek(f, 0, SEEK_END);
     file_size = ftell(f);
-    fseek(f, 0, SEEK_SET);
+    fseek(f, offset, SEEK_SET);
 
     uint64_t mem_id = getMemoryId();
     addressing_mode_t addr_mode = known_proms.at(mem_id);
