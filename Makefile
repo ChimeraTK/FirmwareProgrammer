@@ -2,7 +2,7 @@ include /usr/share/mtca4u/MTCA4U.CONFIG
 
 # Input file settings
 CXX := g++
-TARGET := llrf_prog
+TARGET := mtca4u_fw_programmer
 
 OBJS_PATH := ./obj
 SRC_PATH := ./src

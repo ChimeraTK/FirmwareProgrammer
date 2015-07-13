@@ -63,7 +63,7 @@ then
     exit 1
 fi
 
-$PATH_TO_PROGRAMMER/llrf_prog -d $DEVICE -i jtag -f $FIRMWARE
+$PATH_TO_PROGRAMMER/mtca4u_fw_programmer -d $DEVICE -i jtag -f $FIRMWARE
 
 # Restore previous configuration of JTAG
 cmd_output=$(ipmitool -I lan -H $MCH -P "" -B 0 -T 0x82 -b 7 -t $GEO_ADDR raw 0x30 0x03 0x08 $old_jtag_sett 2>&1)

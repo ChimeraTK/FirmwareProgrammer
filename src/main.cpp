@@ -261,7 +261,7 @@ int main (int argc, char *argv[])
     
     try
     {
-        cout << "\nSimple llrf_prog ver. " << VERSION << endl;
+        cout << "\nmtca4u_fw_programmer ver. " << VERSION << endl;
         arguments = decode_and_verify_arguments(argc, argv);
                                	
         //print arguments

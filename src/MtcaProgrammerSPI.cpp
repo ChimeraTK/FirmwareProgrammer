@@ -22,6 +22,7 @@ const std::map<uint64_t, addressing_mode_t> MtcaProgrammerSPI::known_proms = {
     {0x0103182001, PROM_ADDR_24B},        //old uTC versions
     {0x014d190201, PROM_ADDR_32B},        //TCK7
     {0x00001740EF, PROM_ADDR_24B},        //SIS8300L
+    {0x0010172020, PROM_ADDR_24B}         //PiezoBox (M25P64)
 };
 /*************************************************************************************/
 

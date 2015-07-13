@@ -58,7 +58,7 @@ then
     exit 1
 fi
 
-$PATH_TO_PROGRAMMER/llrf_prog -d $DEVICE -i spi -f $FIRMWARE
+$PATH_TO_PROGRAMMER/mtca4u_fw_programmer -d $DEVICE -i spi -f $FIRMWARE
 if [ $? -ne 0 ]
 then
     exit 1
