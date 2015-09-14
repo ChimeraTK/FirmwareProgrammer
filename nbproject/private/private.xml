@@ -10,6 +10,9 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>rfs://pperek@doocsdev12:22/home/pperek/firmware_upgrade_2015/mtca4u_fw_programmer/include/MtcaProgrammerSPI.h</file>
+            <file>rfs://pperek@doocsdev12:22/home/pperek/firmware_upgrade_2015/mtca4u_fw_programmer/include/MtcaProgrammerBase.h</file>
+            <file>rfs://pperek@doocsdev12:22/home/pperek/firmware_upgrade_2015/mtca4u_fw_programmer/src/main.cpp</file>
             <file>rfs://pperek@doocsdev12:22/home/pperek/firmware_upgrade_2015/mtca4u_fw_programmer/src/MtcaProgrammerSPI.cpp</file>
         </group>
     </open-files>

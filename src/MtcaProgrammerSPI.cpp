@@ -18,11 +18,11 @@
 /* Identifiers of known PROM memories mounted on boards supported by the programmer  */
 /* If you want to add new supported memory, modify this map                          */
 /*************************************************************************************/
-const std::map<uint64_t, addressing_mode_t> MtcaProgrammerSPI::known_proms = {
-    {0x0103182001, PROM_ADDR_24B},        //old uTC versions
-    {0x014d190201, PROM_ADDR_32B},        //TCK7
-    {0x00001740EF, PROM_ADDR_24B},        //SIS8300L
-    {0x0010172020, PROM_ADDR_24B}         //PiezoBox (M25P64)
+const std::map<uint64_t, memory_info_t> MtcaProgrammerSPI::known_proms = {
+    {0x0103182001, {PROM_ADDR_24B, QUAD_MODE_DIS}   },        //old uTC versions
+    {0x014d190201, {PROM_ADDR_32B, QUAD_MODE_EN}    },        //TCK7
+    {0x00001740EF, {PROM_ADDR_24B, QUAD_MODE_DIS}   },        //SIS8300L
+    {0x0010172020, {PROM_ADDR_24B, QUAD_MODE_EN}    }         //PiezoBox (M25P64)
 };
 /*************************************************************************************/
 
@@ -102,12 +102,15 @@ void MtcaProgrammerSPI::program(std::string firmwareFile)
 {
     mDevPtr->writeReg(regAddress(REG_SPI_DIVIDER), 10, mProgBar);
     
-    uint64_t memID = getMemoryId();
+    uint64_t memID = getMemoryId();    
     if(!checkMemoryId(memID))
         throw "Unknown, not present or busy SPI prom 1\n\n";
     
+    quad_mode_t quad_mode = known_proms.at(memID).quad_mode;
+    
     memoryWriteEnable();
-    enableQuadMode();
+    if(quad_mode == QUAD_MODE_EN)
+        enableQuadMode();
     programMemory(firmwareFile);
 }
 
@@ -141,7 +144,7 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile)
     fseek(f, offset, SEEK_SET);
     
     uint64_t mem_id = getMemoryId();
-    addressing_mode_t addr_mode = known_proms.at(mem_id);
+    addressing_mode_t addr_mode = known_proms.at(mem_id).addressing_mode;
     
     do
     {
@@ -386,7 +389,7 @@ void MtcaProgrammerSPI::programMemory(std::string firmwareFile)
     fseek(f, offset, SEEK_SET);
 
     uint64_t mem_id = getMemoryId();
-    addressing_mode_t addr_mode = known_proms.at(mem_id);
+    addressing_mode_t addr_mode = known_proms.at(mem_id).addressing_mode;
     
     do
     {

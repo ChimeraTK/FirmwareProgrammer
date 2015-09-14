@@ -17,6 +17,16 @@ typedef enum {
     PROM_ADDR_32B
 } addressing_mode_t;
 
+typedef enum {
+    QUAD_MODE_EN,
+    QUAD_MODE_DIS
+} quad_mode_t;
+
+typedef struct {
+    addressing_mode_t addressing_mode;
+    quad_mode_t quad_mode;
+} memory_info_t;
+
 class MtcaProgrammerSPI : public MtcaProgrammerBase{
 public:
     MtcaProgrammerSPI(mtcaDevPtr dev, uint32_t base_address, uint8_t bar);
@@ -29,7 +39,7 @@ public:
     
 private:
     static const uint8_t bit_pattern[14];
-    static const std::map<uint64_t, addressing_mode_t> known_proms;
+    static const std::map<uint64_t, memory_info_t> known_proms;
     uint64_t getMemoryId();
     int checkMemoryId(uint64_t memory_id);
     void waitForSpi();

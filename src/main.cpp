@@ -32,7 +32,7 @@
 #include <mtca4u/MtcaMappedDevice/devBase.h>
 #include <mtca4u/MtcaMappedDevice/devPCIE.h>
 
-#define VERSION                 "4.0"
+#define VERSION                 "3.1"
 //#define DEBUG
 
 using namespace std;
@@ -42,7 +42,7 @@ public:
     enum InterfaceType {
         INTERFACE_NONE,
         INTERFACE_SPI,
-        INTERFACE_JTAG,
+        INTERFACE_JTAG
     };
     
     ProgrammingInterface() : mType(INTERFACE_NONE){};
