@@ -24,15 +24,16 @@
 #include <iostream>
 #include <string>
 
+#include <mtca4u/MtcaMappedDevice/devBase.h>
+#include <mtca4u/MtcaMappedDevice/devPCIE.h>
+
 #include "registers.h"
 #include "MtcaProgrammerBase.h"
 #include "MtcaProgrammerSPI.h"
 #include "MtcaProgrammerJTAG.h"
 
-#include <mtca4u/MtcaMappedDevice/devBase.h>
-#include <mtca4u/MtcaMappedDevice/devPCIE.h>
+#include "version.h"
 
-#define VERSION                 "3.1"
 //#define DEBUG
 
 using namespace std;
