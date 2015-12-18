@@ -1,0 +1,17 @@
+Source: mtca4u-fw-programmer
+Section: utils
+Priority: extra
+Maintainer: Geogin Varghese <geogin.varghese@desy.de>
+Build-Depends: debhelper (>= 8.0.0), 
+ dev-mtcamappeddevice (>=  00.17),
+ libncurses5-dev (>= 5.9)
+Standards-Version: 3.9.2
+#Vcs-Git: git://git.debian.org/collab-maint/mtca4u-fw-programmer.git
+#
+
+Package: mtca4u-fw-programmer
+Architecture: any
+Section: utils
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: < !TODO add a description later >
+

@@ -1,0 +1,13 @@
+Format: http://dep.debian.net/deps/dep5
+Source: <https://svnsrv.desy.de/desy/mtca4u_applications/matlab_tools/tags/@MTCA4U_MATLAB_VERSION@>
+
+Files: *
+Copyright: 2015, Deutsches Elektronen-Synchrotron DESY, MSK
+License: DESY-MSK-Internal-1+
+ This package is intended for DESY internal use only. The binary shall only
+ be used at facilities operated by DESY.
+ .
+ Access to the source code is restricted to the developers working on the 
+ code.
+ . 
+ Usage at other facilities can be allowed under an additional licence.

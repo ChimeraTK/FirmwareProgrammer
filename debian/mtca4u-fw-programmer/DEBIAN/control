@@ -1,0 +1,9 @@
+Package: mtca4u-fw-programmer
+Version: 3.1-precise1
+Architecture: amd64
+Maintainer: Geogin Varghese <geogin.varghese@desy.de>
+Installed-Size: 105
+Depends: libc6 (>= 2.4), libgcc1 (>= 1:4.1.1), libstdc++6 (>= 4.1.1), libtinfo5, mtcamappeddevice00-17
+Section: utils
+Priority: extra
+Description: < !TODO add a description later >
