@@ -1,4 +1,9 @@
 include /usr/share/mtca4u/MTCA4U.CONFIG
+#
+# Debian packages are built on tagged versions of the project. The tagged
+# version number is specified through the fw_programmer_version file. Including
+# this file imports the FW_PROGRAMMER_VERSION variable into the makefile
+include fw_programmer_version
 
 # Input file settings
 CXX := g++
@@ -63,7 +68,25 @@ $(DEPS): %.d : %.cpp
 	
 -include $(DEPS)
 
+
+# debian packaging related targets.
+# The debian packaging borrows from the matlab tools project as template:
+# https://svnsrv.desy.de/desy/mtca4u_applications/matlab_tools/trunk/
+################################################################################
+#
+# This target does the following.
+# - sets up debian_from_template diectory with files required by the packaging
+#   tools
+configure-package-files:
+	./configure_package_files.sh ${FW_PROGRAMMER_VERSION}
+	
+# make debian_package generates the debian packages
+debian_package: configure-package-files
+	./make_debian_package.sh ${FW_PROGRAMMER_VERSION}
+################################################################################
+
 clean:
 	-rm -rf $(DEPS)
 	-rm -rf $(OBJS_PATH)
 	-rm -rf *.d
+	rm -rf debian_from_template debian_package

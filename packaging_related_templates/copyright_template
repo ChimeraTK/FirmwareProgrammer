@@ -1,5 +1,7 @@
 Format: http://dep.debian.net/deps/dep5
-Source: <https://svnsrv.desy.de/desy/mtca4u_applications/matlab_tools/tags/@MTCA4U_MATLAB_VERSION@>
+# FW_PROGRAMMER_VERSION will be filled in by the configure_package_files.sh
+# script
+Source: <https://mskllrfredminesrv/svn/mtca4u_fw_programmer/tags/@FW_PROGRAMMER_VERSION@>
 
 Files: *
 Copyright: 2015, Deutsches Elektronen-Synchrotron DESY, MSK
