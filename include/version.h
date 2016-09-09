@@ -8,7 +8,7 @@
 #ifndef VERSION_H
 #define	VERSION_H
 
-#define VERSION_MAJ                 5
+#define VERSION_MAJ                 4
 #define VERSION_MIN                 0
 
 #define TO_STR2(x) #x
