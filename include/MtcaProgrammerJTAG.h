@@ -14,13 +14,16 @@
 
 class MtcaProgrammerJTAG : public MtcaProgrammerBase, XSVFPlayerInterface {
 public:
-    MtcaProgrammerJTAG(mtcaDevPtr dev, uint32_t base_address, uint8_t bar);
+    MtcaProgrammerJTAG(const ProgAccessRaw & args);
+    MtcaProgrammerJTAG(const ProgAccessMap & args);
+    MtcaProgrammerJTAG(const ProgAccessDmap & args);
     virtual ~MtcaProgrammerJTAG();
     
     bool checkFirmwareFile(std::string firmwareFile);
     void erase();
     void program(std::string firmwareFile);
     bool verify(std::string firmwareFile);
+    void rebootFPGA();
     
     // XSVFPlayerInterface
     void setPort(jtag_port_t p, short val);

@@ -15,8 +15,18 @@
 
 const uint8_t MtcaProgrammerJTAG::xsvf_pattern[16] = {0x07, 0x00, 0x13, 0x00, 0x14, 0x00, 0x12, 0x00, 0x12, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x02};
 
-MtcaProgrammerJTAG::MtcaProgrammerJTAG(mtcaDevPtr dev, uint32_t base_address, uint8_t bar) 
-    : MtcaProgrammerBase(dev, base_address, bar)
+MtcaProgrammerJTAG::MtcaProgrammerJTAG(const ProgAccessRaw& args) 
+    : MtcaProgrammerBase(args)
+{
+}
+
+MtcaProgrammerJTAG::MtcaProgrammerJTAG(const ProgAccessMap& args) 
+    : MtcaProgrammerBase(args)
+{
+}
+
+MtcaProgrammerJTAG::MtcaProgrammerJTAG(const ProgAccessDmap& args) 
+    : MtcaProgrammerBase(args)
 {
 }
 
@@ -64,9 +74,11 @@ void MtcaProgrammerJTAG::program(std::string firmwareFile)
 {
 //    printf("XSVF player for MicroTCA boards\n");
 
-    mDevPtr->writeReg(regAddress(REG_SPI_DIVIDER), 10, mProgBar);
-    mDevPtr->writeReg(regAddress(REG_CONTROL), 0x00000000, mProgBar);	// PCIe to RTM
-    		
+    reg_spi_divider = 10;
+    reg_spi_divider.write();
+    reg_control = 0x00000000;
+    reg_control.write();
+    
     XSVFPlayer player(*this);
     player.run(firmwareFile);
     printf("\nProgramming finished\n");
@@ -77,6 +89,11 @@ bool MtcaProgrammerJTAG::verify(std::string firmwareFile)
     return true;
 }
 
+void MtcaProgrammerJTAG::rebootFPGA()
+{
+    
+}
+
 /* setPort:  Implement to set the named JTAG signal (p) to the new value (v).*/
 /* if in debugging mode, then just set the variables */
 void MtcaProgrammerJTAG::setPort (jtag_port_t p, short val)
@@ -84,24 +101,21 @@ void MtcaProgrammerJTAG::setPort (jtag_port_t p, short val)
     //extern SXsvfInfo sxvfInfo;
     if (p == TMS)
     {
-        if (val == 1)
-            mDevPtr->writeReg(regAddress(REG_TMS), 0x1, mProgBar);
-        else
-            mDevPtr->writeReg(regAddress(REG_TMS), 0x0, mProgBar);
+        if (val == 1)   reg_tms = 0x1;
+        else            reg_tms = 0x0;
+        reg_tms.write();
     }
     else if (p == TDI)
     {
-        if (val == 1)
-            mDevPtr->writeReg(regAddress(REG_TDI), 0x1, mProgBar);
-        else
-            mDevPtr->writeReg(regAddress(REG_TDI), 0x0, mProgBar);
+        if (val == 1)   reg_tdi = 0x1;
+        else            reg_tdi = 0x0;
+        reg_tdi.write();
     }
     else if (p == TCK)
     {
-        if (val == 1)
-            mDevPtr->writeReg(regAddress(REG_TCK), 0x1, mProgBar);
-        else
-            mDevPtr->writeReg(regAddress(REG_TCK), 0x0, mProgBar);
+        if (val == 1)   reg_tck = 0x1;
+        else            reg_tck = 0x0;
+        reg_tck.write();
     }
 }
 
@@ -110,7 +124,8 @@ void MtcaProgrammerJTAG::setPort (jtag_port_t p, short val)
 unsigned char MtcaProgrammerJTAG::readTDOBit()
 {
     int data = 0;
-    mDevPtr->readReg(regAddress(REG_TDO), &data, mProgBar);
+    reg_tdo.read();
+    data = reg_tdo;
     return ((unsigned char) (data & 0x1));
 }
 

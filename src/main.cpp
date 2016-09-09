@@ -24,9 +24,6 @@
 #include <iostream>
 #include <string>
 
-#include <mtca4u/MtcaMappedDevice/devBase.h>
-#include <mtca4u/MtcaMappedDevice/devPCIE.h>
-
 #include "registers.h"
 #include "MtcaProgrammerBase.h"
 #include "MtcaProgrammerSPI.h"
@@ -70,26 +67,40 @@ private:
 
 struct arguments_t{
     ProgrammingInterface interface;
-    char* source_file;
-    char* device;
+    std::string firmware_file_path;
+    std::string device_name;
+    bool device_name_raw;
     uint32_t address;
     uint8_t bar;
+    std::string dmap_file_path;
+    std::string map_file_path;
+    std::string map_area_name;
+    bool action_programming;
+    bool action_verification;
+    bool action_reboot;
     
     arguments_t() : 
         interface(ProgrammingInterface(ProgrammingInterface::INTERFACE_NONE)),
-        source_file(NULL),
-        device(NULL),
+        firmware_file_path(),
+        device_name(),
+        device_name_raw(false),
         address(PROG_DEFAULT_ADDRESS),
-        bar(PROG_DEFAULT_BAR)
+        bar(PROG_DEFAULT_BAR),
+        dmap_file_path(),
+        map_file_path(),
+        map_area_name(PROG_DEFAULT_MODULE_NAME),
+        action_programming(false),
+        action_verification(false),
+        action_reboot(false)
     {
     }
     
     string toString()
     {
         ostringstream os;
-        os << "Device: " << device << endl;
+        os << "Device: " << device_name << endl;
         os << "Interface: " << interface.toString() << endl;
-        os << "File: " << source_file << endl;
+        os << "Firmware file: " << firmware_file_path << endl;
         os << "Programmer:" << endl;
         os << "\taddress: " << address << endl;
         os << "\tbar:" << bar << endl;
@@ -114,20 +125,14 @@ usage (const char *progname)
     exit (1);
 }
 
-arguments_t decode_and_verify_arguments(int argc, char *argv[])
+arguments_t parse_arguments(int argc, char *argv[])
 {
     int opt;
-    FILE* tmp_file;
-				
     arguments_t arguments;
+    const std::string raw_prefix("sdm");
     
-#ifdef DEBUG
-    printf ("Debug active, parsing arguments... \n");
-    fflush (stdout);
-#endif
-
-//get and parse input options			
-    while ((opt = getopt (argc, argv, "hi:f:d:a:")) != -1)
+    //get and parse input options			
+    while ((opt = getopt (argc, argv, "hpvri:f:d:a:D:M:R:")) != -1)
     {
         switch(opt)
         {
@@ -146,19 +151,22 @@ arguments_t decode_and_verify_arguments(int argc, char *argv[])
                 break;
                     
             case 'f':
-                if(arguments.source_file)
+                if(!arguments.firmware_file_path.empty())
                 {
-                    throw "Cannot open more than one file at the same time.\n";
+                    throw "Cannot open more than one firmware file at the same time.\n";
                 }
-                arguments.source_file = strdup(optarg);				
+                arguments.firmware_file_path = strdup(optarg);				
                 break;
             
             case 'd':
-                if(arguments.device)
+                if(!arguments.device_name.empty())
                 {
                     throw "Cannot open more than one device at the same time.\n";
                 }	
-                arguments.device = strdup(optarg);
+                arguments.device_name = strdup(optarg);
+                //if device name starts with 'sdm' it is a raw name
+                if(arguments.device_name.compare(0, raw_prefix.size(), raw_prefix) == 0)
+                    arguments.device_name_raw = true;
                 break;
             
             case 'a':
@@ -201,57 +209,90 @@ arguments_t decode_and_verify_arguments(int argc, char *argv[])
                     break;
                 }
                 
+            case 'D':
+                if(!arguments.dmap_file_path.empty())
+                {
+                    throw "Cannot use more than one DMAP file at the same time.\n";
+                }	
+                arguments.dmap_file_path = strdup(optarg);
+                break;
+            
+            case 'M':
+                if(!arguments.map_file_path.empty())
+                {
+                    throw "Cannot use more than one MAP file at the same time.\n";
+                }	
+                arguments.map_file_path = strdup(optarg);
+                break;
+                
+            case 'R':
+                if(!arguments.map_area_name.empty())
+                {
+                    throw "Cannot use more than one register area at the same time.\n";
+                }	
+                arguments.map_area_name = strdup(optarg);
+                break;    
+                
+            case 'p':
+                arguments.action_programming = true;
+                break;
+            
+            case 'v':
+                arguments.action_verification = true;
+                break;
+            
+            case 'r':
+                arguments.action_reboot = true;
+                break;
+            
             case 'h':
             default:		/* '?' */
                 usage (argv[0]);
                 exit (0);
         }
     }
+    
+    return arguments;
+}
 
-    //Arguments verification
-    if(arguments.device == NULL)
+void verify_arguments(char* app_name, arguments_t arguments)
+{
+    if(!arguments.action_programming &&
+       !arguments.action_reboot &&
+       !arguments.action_verification)
     {
-        printf("Cannot make any actions without provided device.\n"
+        printf("Please specify action(s) to be executed.\n");
+        usage(app_name);
+    }
+    
+    if(arguments.device_name.empty())
+    {
+        printf("Cannot make any actions without device name.\n"
                 "Please specify device for programming.\n");
-        usage(argv[0]);
+        usage(app_name);
     }
-    else
-    {
-        tmp_file = fopen(arguments.device, "r"); 
-        if(tmp_file == NULL)
-            throw "Cannot open the device for programming. Maybe the driver is not loaded nor you do not have rights to open the device.";
-        else
-            fclose(tmp_file);
-    }
-
+    
     if(arguments.interface.getType() == ProgrammingInterface::INTERFACE_NONE) 
     {
         printf("Programming interface (SPI/JTAG) is missing.\n"
                 "Please specify the interface appropriate for the device.\n");
-        usage(argv[0]);
+        usage(app_name);
     } 
 
-    if(arguments.source_file == NULL )
+    if(arguments.firmware_file_path.empty())
     {
-        printf("Source file is missing.\n"
+        printf("Firmware file is missing.\n"
                 "Please specify the location of file with firmware.\n");
-        usage(argv[0]);
+        usage(app_name);
     }
     else
     {
-        tmp_file = fopen(arguments.source_file, "r");
+        FILE* tmp_file = fopen(arguments.firmware_file_path.c_str(), "r");
         if(tmp_file == NULL)
             throw "Cannot open source file. Please check if file exists and you have rights to access it.\n";
         else
             fclose(tmp_file);
     }
-        
-#ifdef DEBUG    
-    // Input parameters debug info
-    cout << arguments.toString();
-#endif
-    
-    return arguments;
 }
 
 int main (int argc, char *argv[])
@@ -262,42 +303,119 @@ int main (int argc, char *argv[])
     
     try
     {
-        cout << "\nmtca4u_fw_programmer ver. " << VERSION << endl;
-        arguments = decode_and_verify_arguments(argc, argv);
+        cout << "\nmtca4u_fw_programmer ver. " << VERSION << endl << endl;
+        arguments = parse_arguments(argc, argv);
+        verify_arguments(argv[0], arguments);
                                	
         //print arguments
-        printf("Programing PROM of %s device\n", arguments.device);
-        if(arguments.source_file) 
+/*        cout << "Programming PROM of " << arguments.device_name << " device\n";
+        if(!arguments.firmware_file_path.empty()) 
         {
-            printf("Source file: %s\n", arguments.source_file);
+            printf("Source file: %s\n", arguments.firmware_file_path.c_str());
         }
-        
-        mtcaDevPtr dev = mtcaDevPtr(new mtca4u::devPCIE());
-        dev->openDev(arguments.device);
-                	
-        switch(arguments.interface.getType())
+*/        
+
+        if(arguments.device_name_raw)
         {
-            case ProgrammingInterface::INTERFACE_SPI:
-                programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerSPI(dev, arguments.address, arguments.bar));
-                break;	
-            case ProgrammingInterface::INTERFACE_JTAG:
-                programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerJTAG(dev, arguments.address, arguments.bar));
-                break;	
-            default:
-                throw "Unknown interface\n\n";
+            if(arguments.map_file_path.empty())     // Access raw
+            {
+                cout << "Input mode - Direct" << endl;
+                cout << "Firmware file: " << arguments.firmware_file_path << endl;
+                cout << "Device name: " << arguments.device_name << endl;
+                cout << "Bar: " << (uint32_t)arguments.bar << endl;
+                cout << "Address: " << arguments.address << endl;
+                
+                switch(arguments.interface.getType())
+                {
+                    case ProgrammingInterface::INTERFACE_SPI:
+                        programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerSPI(ProgAccessRaw(arguments.device_name, arguments.bar, arguments.address)));
+                        break;	
+                    case ProgrammingInterface::INTERFACE_JTAG:
+                        programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerJTAG(ProgAccessRaw(arguments.device_name, arguments.bar, arguments.address)));
+                        break;	
+                    default:
+                        throw "Unknown interface\n\n";
+                }
+            }
+            else
+            {
+                cout << "Input mode - MAP" << endl;
+                cout << "Firmware file: " << arguments.firmware_file_path << endl;
+                cout << "Device name: " << arguments.device_name << endl;
+                cout << "MAP file: " << arguments.map_file_path << endl;
+                cout << "Module name in MAP file: " << arguments.map_area_name << endl;
+                
+                switch(arguments.interface.getType())
+                {
+                    case ProgrammingInterface::INTERFACE_SPI:
+                        programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerSPI(ProgAccessMap(arguments.device_name, arguments.map_file_path, arguments.map_area_name)));
+                        break;	
+                    case ProgrammingInterface::INTERFACE_JTAG:
+                        programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerJTAG(ProgAccessMap(arguments.device_name, arguments.map_file_path, arguments.map_area_name)));
+                        break;	
+                    default:
+                        throw "Unknown interface\n\n";
+                }
+            }
         }
+        else
+        {
+            if(arguments.dmap_file_path.empty())
+            {
+                printf( "DMAP file is missing.\n"
+                        "Please specify the location of DMAP file.\n");
+                usage(argv[0]);
+            }
+            
+            cout << "Input mode - DMAP" << endl;
+            cout << "Firmware file: " << arguments.firmware_file_path << endl;
+            cout << "DMAP file: " << arguments.dmap_file_path << endl;
+            cout << "Device name: " << arguments.device_name << endl;
+            cout << "Module name in MAP file: " << arguments.map_area_name << endl;
+            
+            switch(arguments.interface.getType())
+            {
+                case ProgrammingInterface::INTERFACE_SPI:
+                    programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerSPI(ProgAccessDmap(arguments.device_name, arguments.dmap_file_path, arguments.map_area_name)));
+                    break;	
+                case ProgrammingInterface::INTERFACE_JTAG:
+                    programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerJTAG(ProgAccessDmap(arguments.device_name, arguments.dmap_file_path, arguments.map_area_name)));
+                    break;	
+                default:
+                    throw "Unknown interface\n\n";
+            }
+        }
+        cout << endl << endl;
         
-        if(!programmer->checkFirmwareFile(arguments.source_file))
+        
+#if 1       
+        if(!programmer->checkFirmwareFile(arguments.firmware_file_path))
         {
             fprintf(stderr, "Incorrect firmware file\n");
         }
-        programmer->erase();
-        programmer->program(arguments.source_file);
-        programmer->verify(arguments.source_file);
+        if(arguments.action_programming)
+        {
+            programmer->erase();
+            programmer->program(arguments.firmware_file_path);
+        }
+        if(arguments.action_verification)
+        {
+            programmer->verify(arguments.firmware_file_path);
+        }
+        if(arguments.action_reboot)
+        {
+            programmer->rebootFPGA();
+        }
+#endif
     }
     catch (const char *exc)		//handle the exceptions
     {
         fprintf (stderr, "\n \nError: %s\n", exc);
+        return 1;
+    }
+    catch (mtca4u::Exception e)
+    {
+        fprintf (stderr, "\n \nMTCA4U Error: %s\n", e.what());
         return 1;
     }
 	

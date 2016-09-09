@@ -1,4 +1,3 @@
-include /usr/share/mtca4u/MTCA4U.CONFIG
 #
 # Debian packages are built on tagged versions of the project. The tagged
 # version number is specified through the fw_programmer_version file. Including
@@ -15,7 +14,7 @@ INCLUDE_PATH := ./include
 DEPS_PATH := ./.deps
 VPATH = $(SRC_PATH):$(OBJ_PATH):$(INCLUDE_PATH)
 
-INCLUDES := $(INCLUDE_PATH:%=-I%) $(MtcaMappedDevice_INCLUDE_FLAGS)
+INCLUDES := $(INCLUDE_PATH:%=-I%)
 
 LIB_DIRS :=
 LIBS := curses
@@ -25,6 +24,12 @@ DEBUG := yes
 
 # compiler/linker flags
 CXXFLAGS := -fPIC -Wall -Wextra -Wshadow -Weffc++ -ansi -pedantic -Wuninitialized -std=c++0x
+CXXFLAGS += $(shell mtca4u-deviceaccess-config --cppflags)
+ifeq ($(DEBUG),yes)
+	CXXFLAGS += -g -ggdb
+else
+	CXXFLAGS += -O3
+endif
 
 # SVN revision taken from Jenkins environment variable
 ifdef SVN_REVISION
@@ -33,12 +38,8 @@ else
 CXXFLAGS += -DSVN_REV=XX
 endif
 
-LDFLAGS := $(LIBDIRS:%=-L%) $(LIBS:%=-l%) $(MtcaMappedDevice_LIB_FLAGS)
-ifeq ($(DEBUG),yes)
-	CXXFLAGS += -g -ggdb
-else
-	CXXFLAGS += -O3
-endif
+LDFLAGS := $(LIBDIRS:%=-L%) $(LIBS:%=-l%) 
+LDFLAGS += $(shell mtca4u-deviceaccess-config --ldflags)
 
 # Examples
 SOURCES := $(wildcard $(SRC_PATH)/*.cpp)

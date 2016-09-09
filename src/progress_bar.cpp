@@ -4,7 +4,11 @@
 #include <sys/ioctl.h>
 #include <term.h>
 
+#include <chrono>
+using namespace std::chrono;
+
 int last_value = 0;
+high_resolution_clock::time_point last_time = high_resolution_clock::now();
 
 int my_putchar(int c)
 {
@@ -29,6 +33,11 @@ void ProgressBar(double TotalToDownload, double NowDownloaded)
 
     if(progress != last_value)
     {
+        //high_resolution_clock::time_point current_time = high_resolution_clock::now();
+        //duration<double, std::milli> time_diff = current_time - last_time;
+        //printf("time_diff: %.2f ms\n", time_diff);
+        //last_time = current_time;
+        
 	tputs(clr_eol, 1, my_putchar);			//clear line
 	printf("%4d%% [", progress);
 	for ( ; ii < barlength;ii++) {

@@ -29,13 +29,16 @@ typedef struct {
 
 class MtcaProgrammerSPI : public MtcaProgrammerBase{
 public:
-    MtcaProgrammerSPI(mtcaDevPtr dev, uint32_t base_address, uint8_t bar);
+    MtcaProgrammerSPI(const ProgAccessRaw & args);
+    MtcaProgrammerSPI(const ProgAccessMap & args);
+    MtcaProgrammerSPI(const ProgAccessDmap & args);
     virtual ~MtcaProgrammerSPI();
     
     bool checkFirmwareFile(std::string firmwareFile);
     void erase();
     void program(std::string firmwareFile);
     bool verify(std::string firmwareFile);
+    void rebootFPGA();
     
 private:
     static const uint8_t bit_pattern[14];
@@ -49,7 +52,7 @@ private:
     void memoryWriteEnable();
     void memoryBulkErase();
     void programMemory(std::string firmwareFile);
-    void programMemoryPage(unsigned int address, unsigned int size, char *buffer, addressing_mode_t addr_mode);
+    void programMemoryPage(unsigned int address, unsigned int size, unsigned char *buffer, addressing_mode_t addr_mode);
     long int findDataOffset(FILE *file);
 };
 

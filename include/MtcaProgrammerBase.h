@@ -8,28 +8,73 @@
 #ifndef MTCAPROGRAMMERBASE_H
 #define	MTCAPROGRAMMERBASE_H
 
-#include <mtca4u/MtcaMappedDevice/devBase.h>
-#include <mtca4u/MtcaMappedDevice/devPCIE.h>
+#include <mtca4u/Device.h>
 
-#include <boost/shared_ptr.hpp>
+#include "registers.h"
 
-typedef boost::shared_ptr<mtca4u::devBase> mtcaDevPtr;
+struct ProgAccessRaw {
+    ProgAccessRaw(std::string deviceName, uint8_t bar = PROG_DEFAULT_BAR, uint32_t address = PROG_DEFAULT_ADDRESS) 
+                : mDeviceName(deviceName), mBar(bar), mAddress(address)
+    {
+    };
+    
+    std::string mDeviceName;
+    uint8_t mBar;
+    uint32_t mAddress;
+};
+
+struct ProgAccessMap {
+    ProgAccessMap(std::string deviceName, std::string mapFilePath, std::string moduleName = PROG_DEFAULT_MODULE_NAME) 
+                : mDeviceName(deviceName), mMapFilePath(mapFilePath), mModuleName(moduleName)
+    {
+    };
+                
+    std::string mDeviceName;
+    std::string mMapFilePath;
+    std::string mModuleName;
+};
+
+struct ProgAccessDmap {
+    ProgAccessDmap(std::string deviceName, std::string dmapFilePath, std::string moduleName = PROG_DEFAULT_MODULE_NAME) 
+                : mDeviceName(deviceName), mDmapFilePath(dmapFilePath), mModuleName(moduleName)
+    {
+    };
+                
+    std::string mDeviceName;
+    std::string mDmapFilePath;
+    std::string mModuleName;
+};
 
 class MtcaProgrammerBase {
 public:
-    MtcaProgrammerBase(mtcaDevPtr dev, uint32_t base_address, uint8_t bar);
+    MtcaProgrammerBase(const ProgAccessRaw & args);
+    MtcaProgrammerBase(const ProgAccessMap & args);
+    MtcaProgrammerBase(const ProgAccessDmap & args);
+    
     virtual ~MtcaProgrammerBase();
     
     virtual bool checkFirmwareFile(std::string firmwareFile) = 0;
     virtual void erase() = 0;
     virtual void program(std::string firmwareFile) = 0;
     virtual bool verify(std::string firmwareFile) = 0;
+    virtual void rebootFPGA() = 0;
     
 protected:
-    mtcaDevPtr mDevPtr;
-    uint32_t mProgBaseAddress;
-    uint8_t mProgBar;
-    int regAddress (int reg);
+    mtca4u::Device mDevice = mtca4u::Device();
+    
+    mtca4u::OneDRegisterAccessor<uint32_t> reg_area_write = mtca4u::OneDRegisterAccessor<uint32_t>();
+    mtca4u::OneDRegisterAccessor<uint32_t> reg_area_read = mtca4u::OneDRegisterAccessor<uint32_t>();    
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_spi_divider = mtca4u::ScalarRegisterAccessor<uint32_t>();
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_bytes_to_write = mtca4u::ScalarRegisterAccessor<uint32_t>();
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_bytes_to_read = mtca4u::ScalarRegisterAccessor<uint32_t>();
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_control = mtca4u::ScalarRegisterAccessor<uint32_t>();
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_tck = mtca4u::ScalarRegisterAccessor<uint32_t>();
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_tms = mtca4u::ScalarRegisterAccessor<uint32_t>();
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_tdi = mtca4u::ScalarRegisterAccessor<uint32_t>();
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_tdo = mtca4u::ScalarRegisterAccessor<uint32_t>();
+    
+private:
+    void initRegisterAccessors(const std::string &registerPathName);
 };
 
 #endif	/* MTCAPROGRAMMERBASE_H */
