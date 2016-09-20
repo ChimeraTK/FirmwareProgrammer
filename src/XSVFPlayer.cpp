@@ -100,7 +100,7 @@ void XSVFPlayer::run(std::string file)
     mFile = fopen(file.c_str(),"r");
     if (!mFile)
     {
-        throw "Cannot open xsfv file";
+        throw std::invalid_argument("Cannot open xsfv file");
     }
     
     //run dummy programming to calculate the total number of commands
@@ -140,7 +140,7 @@ void XSVFPlayer::run(std::string file)
     mFile = NULL;
     
     if(sxvfInfo.iErrorCode != XSVF_ERROR_NONE)
-        throw ERROR_CODES_MICRO_H[sxvfInfo.iErrorCode];
+        throw std::runtime_error(ERROR_CODES_MICRO_H[sxvfInfo.iErrorCode]);
 }
 
 /* readByte:  Implement to source the next byte from your XSVF file location */

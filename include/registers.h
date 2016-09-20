@@ -41,4 +41,7 @@
 #define SPIREADER_RESET		0x08000000
 #define DSP_RESET		0x80000000
 
+// Revision switch register (REG_REV_SWITCH)
+#define FPGA_REBOOT_WORD            0x2EB00701
+
 #endif /*_REGISTERS_H_*/

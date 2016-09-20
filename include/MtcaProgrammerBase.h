@@ -60,18 +60,19 @@ public:
     virtual void rebootFPGA() = 0;
     
 protected:
-    mtca4u::Device mDevice = mtca4u::Device();
+    mtca4u::Device mDevice;
     
-    mtca4u::OneDRegisterAccessor<uint32_t> reg_area_write = mtca4u::OneDRegisterAccessor<uint32_t>();
-    mtca4u::OneDRegisterAccessor<uint32_t> reg_area_read = mtca4u::OneDRegisterAccessor<uint32_t>();    
-    mtca4u::ScalarRegisterAccessor<uint32_t> reg_spi_divider = mtca4u::ScalarRegisterAccessor<uint32_t>();
-    mtca4u::ScalarRegisterAccessor<uint32_t> reg_bytes_to_write = mtca4u::ScalarRegisterAccessor<uint32_t>();
-    mtca4u::ScalarRegisterAccessor<uint32_t> reg_bytes_to_read = mtca4u::ScalarRegisterAccessor<uint32_t>();
-    mtca4u::ScalarRegisterAccessor<uint32_t> reg_control = mtca4u::ScalarRegisterAccessor<uint32_t>();
-    mtca4u::ScalarRegisterAccessor<uint32_t> reg_tck = mtca4u::ScalarRegisterAccessor<uint32_t>();
-    mtca4u::ScalarRegisterAccessor<uint32_t> reg_tms = mtca4u::ScalarRegisterAccessor<uint32_t>();
-    mtca4u::ScalarRegisterAccessor<uint32_t> reg_tdi = mtca4u::ScalarRegisterAccessor<uint32_t>();
-    mtca4u::ScalarRegisterAccessor<uint32_t> reg_tdo = mtca4u::ScalarRegisterAccessor<uint32_t>();
+    mtca4u::OneDRegisterAccessor<uint32_t> reg_area_write;
+    mtca4u::OneDRegisterAccessor<uint32_t> reg_area_read;    
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_spi_divider;
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_bytes_to_write;
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_bytes_to_read;
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_control;
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_tck;
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_tms;
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_tdi;
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_tdo;
+    mtca4u::ScalarRegisterAccessor<uint32_t> reg_rev_switch;
     
 private:
     void initRegisterAccessors(const std::string &registerPathName);

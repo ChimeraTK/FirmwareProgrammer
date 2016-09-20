@@ -79,7 +79,7 @@ bool MtcaProgrammerSPI::checkFirmwareFile(std::string firmwareFile)
     input_file = fopen(firmwareFile.c_str(), "r");
     if(input_file == NULL)
     {
-            throw "Cannot open bit file. Maybe the file does not exist\n";
+            throw std::invalid_argument("Cannot open bit file. Maybe the file does not exist");
     }
     else
     {
@@ -107,7 +107,7 @@ void MtcaProgrammerSPI::erase()
     
     uint64_t memID = getMemoryId();
     if(!checkMemoryId(memID))
-        throw "Unknown, not present or busy SPI prom 1\n\n";
+        throw std::runtime_error("Unknown, not present or busy SPI prom");
     
     memoryWriteEnable();
     memoryBulkErase();
@@ -120,7 +120,7 @@ void MtcaProgrammerSPI::program(std::string firmwareFile)
     
     uint64_t memID = getMemoryId();    
     if(!checkMemoryId(memID))
-        throw "Unknown, not present or busy SPI prom 1\n\n";
+        throw std::runtime_error("Unknown, not present or busy SPI prom");
     
     quad_mode_t quad_mode = known_proms.at(memID).quad_mode;
     
@@ -137,7 +137,7 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile)
     
     uint64_t memID = getMemoryId();
     if(!checkMemoryId(memID))
-        throw "Unknown, not present or busy SPI prom 1\n\n";
+        throw std::runtime_error("Unknown, not present or busy SPI prom");
     
     unsigned char buffer[1024];
     int32_t data;
@@ -150,11 +150,11 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile)
     printf ("\nVerification\n");
 
     if (!f)
-        throw "cannot open input file";
+        throw std::invalid_argument("Cannot open firmware file");
 
     offset = findDataOffset(f);
     if(offset == -1)
-        throw "cannot find start sequence in the file";
+        throw std::runtime_error("Cannot find start sequence in the file");
     
     fseek(f, 0, SEEK_END);
     file_size = ftell(f);
@@ -172,7 +172,7 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile)
             if (ferror (f))
             {
                 fclose(f);
-                throw ("Error reading input file");
+                throw std::runtime_error("Error reading firmware file");
             }
             fclose (f);
             return true;
@@ -210,7 +210,9 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile)
 
 void MtcaProgrammerSPI::rebootFPGA()
 {
-    printf("FPGA reboot - to be done...\n");
+    printf("FPGA rebooting...\n");
+    reg_rev_switch = FPGA_REBOOT_WORD;
+    reg_rev_switch.write();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -271,7 +273,7 @@ void MtcaProgrammerSPI::waitForSpi()
         //printf("waitForSpi() - data = 0x%X\n", data);
         usleep(1);
         if(i++ == 10000) 
-            throw("Timeout waiting for SPI completion\nTry rescanning PCIe bus\n");
+            throw std::runtime_error("Timeout waiting for SPI completion\nTry rescanning PCIe bus");
     }
     while (data & 1);
 }
@@ -438,11 +440,11 @@ void MtcaProgrammerSPI::programMemory(std::string firmwareFile)
     printf ("\nProgramming\n");
 
     if (!f)
-        throw "cannot open input file";
+        throw std::invalid_argument("Cannot open firmware file");
 
     offset = findDataOffset(f);
     if(offset == -1)
-        throw "cannot find start sequence in the file";
+        throw std::runtime_error("Cannot find start sequence in the file");
     
     fseek(f, 0, SEEK_END);
     file_size = ftell(f);
@@ -458,7 +460,7 @@ void MtcaProgrammerSPI::programMemory(std::string firmwareFile)
         {
             printf ("\nprogrammed %d bytes\n", addr);
             if (ferror (f))
-                throw ("Error reading input file");
+                throw std::runtime_error("Error reading firmware file");
             fclose (f);
             return;
         }

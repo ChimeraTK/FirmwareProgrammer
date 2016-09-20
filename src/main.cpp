@@ -21,6 +21,7 @@
 #include <dirent.h>
 
 #include <boost/program_options.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 #include <iostream>
 #include <string>
 
@@ -34,6 +35,7 @@
 //#define DEBUG
 
 using namespace std;
+namespace po = boost::program_options;
 
 class ProgrammingInterface {    
 public:
@@ -77,7 +79,7 @@ struct arguments_t{
     std::string map_area_name;
     bool action_programming;
     bool action_verification;
-    bool action_reboot;
+    bool action_reload;
     
     arguments_t() : 
         interface(ProgrammingInterface(ProgrammingInterface::INTERFACE_NONE)),
@@ -91,7 +93,7 @@ struct arguments_t{
         map_area_name(PROG_DEFAULT_MODULE_NAME),
         action_programming(false),
         action_verification(false),
-        action_reboot(false)
+        action_reload(false)
     {
     }
     
@@ -110,186 +112,175 @@ struct arguments_t{
 };
 
 /** explain the usage of the program */
-void
-usage (const char *progname) 
+void usage (const char *progname) 
 {
-    fprintf (stderr, "\nLLRF PROM programmer for uTC/uVM/SIS8300/SIS8300L/DAMC2 boards\n");
-    fprintf (stderr, "%s -d [device] -i [interface] -f [firmware file] -a [address]b[bar]\n\n", progname);
-
-    fprintf (stderr, "Example: %s -d /dev/llrfutcs4 -i spi -f firmware.bin -a 16384b0\n\n", progname);  
-
-    fprintf (stderr, "Supported interfaces:\n");  
-    fprintf (stderr, "-i spi \n");   
-    fprintf (stderr, "-i jtag\n\n");
-
-    exit (1);
+    std::cout << "Usage:" << std::endl;
+    std::cout << "1) Direct: " << progname << "-d [device] [actions] -i [interface] -f [firmware file] -a [address]b[bar]" << std::endl;
+    std::cout << "2) MAP: " << progname << "-d [device] [actions] -i [interface] -f [firmware file] -M [map_file] -R[boot_area_name]" << std::endl;
+    std::cout << "3) DMAP: " << progname << "-d [device] [actions] -i [interface] -f [firmware file] -D [dmap_file] -R[boot_area_name]" << std::endl;
 }
 
 arguments_t parse_arguments(int argc, char *argv[])
 {
-    int opt;
-    arguments_t arguments;
+    arguments_t args;
     const std::string raw_prefix("sdm");
     
-    //get and parse input options			
-    while ((opt = getopt (argc, argv, "hpvri:f:d:a:D:M:R:")) != -1)
+    // Declare a group of options that will be 
+    // allowed only on command line
+    po::options_description generic("Generic options");
+    generic.add_options()
+        ("help,h", "produce help message")
+        ("config,c", po::value<string>(), "set configuration file")    
+    ;
+    
+    // Declare a group of options that will be 
+    // allowed both on command line and in
+    // config file
+    po::options_description config("Configuration");
+    config.add_options()
+        ("program,p", po::bool_switch()->default_value(false), "erase and program memory")
+        ("verify,v", po::bool_switch()->default_value(false), "verify memory")
+        ("reload,r", po::bool_switch()->default_value(false), "reload FPGA")
+        ("interface,i", po::value<string>(), "memory interface (spi/jtag)")
+        ("firmware_file,f", po::value<string>(), "FPGA firmware file")
+        ("device,d", po::value<string>(), "device name")
+        ("address,a", po::value<string>(), "address and bar of boot area in FGPA - example: -a [address]b[bar]")
+        ("dmap,D", po::value<string>(), "DMAP file path")
+        ("map,M", po::value<string>(), "MAP file path")
+        ("boot_area,R", po::value<string>(), "boot area name in MAP file")
+    ;
+    
+    po::options_description cmdline_options;
+    cmdline_options.add(generic).add(config);
+
+    po::options_description config_file_options;
+    config_file_options.add(config);
+    
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
+    po::notify(vm);
+    
+    if (vm.count("help")) {
+        usage(argv[0]);
+        cout << cmdline_options << "\n";
+        exit(1);
+    }
+    
+    if(vm.count("config"))
     {
-        switch(opt)
+        std::string config_file_path = vm["config"].as<std::string>();
+        cout << "Configuration file path: "  << config_file_path << "\n";
+        
+        po::store(po::parse_config_file<char>(config_file_path.c_str(), config_file_options), vm);
+        po::notify(vm); 
+    }
+
+    args.action_programming = vm["program"].as<bool>();
+    args.action_verification = vm["verify"].as<bool>();
+    args.action_reload = vm["reload"].as<bool>();
+    
+    if(vm.count("device")){
+        args.device_name = vm["device"].as<std::string>();
+        if(args.device_name.compare(0, raw_prefix.size(), raw_prefix) == 0)
+            args.device_name_raw = true;
+    }
+    
+    if(vm.count("interface")){
+        std::string interface = vm["interface"].as<std::string>();
+        if(interface.empty())
+            args.interface = ProgrammingInterface(ProgrammingInterface::INTERFACE_NONE);
+        else if (interface.compare("spi") == 0)
+            args.interface = ProgrammingInterface(ProgrammingInterface::INTERFACE_SPI);
+        else if (interface.compare("jtag") == 0)
+            args.interface = ProgrammingInterface(ProgrammingInterface::INTERFACE_JTAG);
+        else 
+            throw std::invalid_argument("Unknown protocol, use spi or jtag\n");
+    }
+    
+    if(vm.count("firmware_file"))
+        args.firmware_file_path = vm["firmware_file"].as<std::string>();
+    
+    if(vm.count("dmap"))
+        args.dmap_file_path = vm["dmap"].as<std::string>();
+    
+    if(vm.count("map"))
+        args.map_file_path = vm["map"].as<std::string>();
+    
+    if(vm.count("boot_area"))
+        args.map_area_name = vm["boot_area"].as<std::string>();
+    
+    if(vm.count("address"))
+    {
+        std::string address_input = vm["address"].as<std::string>();
+        //std::cout << "Address input: " << address_input << std::endl;
+        uint32_t b_counter = 0;
+        std::size_t b_position = address_input.find_first_of("b");
+        while(b_position != std::string::npos)
         {
-            case 'i':
-                if(arguments.interface.getType() != ProgrammingInterface::INTERFACE_NONE)
-                {
-                    throw "Cannot use more than one interface at the same time.\n";
-                }	
-                if ((strncmp (optarg, "spi", 3)) == 0)
-                    arguments.interface = ProgrammingInterface(ProgrammingInterface::INTERFACE_SPI);
-                else if ((strncmp (optarg, "jtag", 4)) == 0)
-                    arguments.interface = ProgrammingInterface(ProgrammingInterface::INTERFACE_JTAG);
-                else 
-                    throw ("Unknown protocol, use spi or jtag \n");
-                
-                break;
-                    
-            case 'f':
-                if(!arguments.firmware_file_path.empty())
-                {
-                    throw "Cannot open more than one firmware file at the same time.\n";
-                }
-                arguments.firmware_file_path = strdup(optarg);				
-                break;
-            
-            case 'd':
-                if(!arguments.device_name.empty())
-                {
-                    throw "Cannot open more than one device at the same time.\n";
-                }	
-                arguments.device_name = strdup(optarg);
-                //if device name starts with 'sdm' it is a raw name
-                if(arguments.device_name.compare(0, raw_prefix.size(), raw_prefix) == 0)
-                    arguments.device_name_raw = true;
-                break;
-            
-            case 'a':
-                {
-                    std::string address_input(optarg);
-                    //std::cout << "Address input: " << address_input << std::endl;
-                    uint32_t b_counter = 0;
-                    std::size_t b_position = address_input.find_first_of("b");
-                    while(b_position != std::string::npos)
-                    {
-                        b_counter++;
-                        b_position = address_input.find_first_of("b", b_position + 1);
-                    }
-                    if(b_counter != 1)
-                        throw "Wrong format of programmer address.\n";
-                    
-                    b_position = address_input.find_first_of("b");
+            b_counter++;
+            b_position = address_input.find_first_of("b", b_position + 1);
+        }
+        if(b_counter != 1)
+            throw std::invalid_argument("Wrong format of programmer address.\n");
 
-                    try{
-                        std::string address_ch = address_input.substr(0, b_position);
-                        std::string bar_ch = address_input.substr(b_position + 1, address_input.length() - b_position);
+        b_position = address_input.find_first_of("b");
 
-                        size_t idx;
-                        uint32_t address = std::stoi(address_ch, &idx);
-                        if(idx != address_ch.length())
-                            throw "Wrong format of programmer address.\n";
-                        
-                        uint8_t bar = std::stoi(bar_ch, &idx);
-                        if(idx != bar_ch.length())
-                            throw "Wrong format of programmer address.\n";
-                        
-                        arguments.address = address;
-                        arguments.bar = bar;
-                    }
-                    catch(...)
-                    {
-                        throw "Wrong format of programmer address.\n";
-                    }
-                    
-                    break;
-                }
-                
-            case 'D':
-                if(!arguments.dmap_file_path.empty())
-                {
-                    throw "Cannot use more than one DMAP file at the same time.\n";
-                }	
-                arguments.dmap_file_path = strdup(optarg);
-                break;
-            
-            case 'M':
-                if(!arguments.map_file_path.empty())
-                {
-                    throw "Cannot use more than one MAP file at the same time.\n";
-                }	
-                arguments.map_file_path = strdup(optarg);
-                break;
-                
-            case 'R':
-                if(!arguments.map_area_name.empty())
-                {
-                    throw "Cannot use more than one register area at the same time.\n";
-                }	
-                arguments.map_area_name = strdup(optarg);
-                break;    
-                
-            case 'p':
-                arguments.action_programming = true;
-                break;
-            
-            case 'v':
-                arguments.action_verification = true;
-                break;
-            
-            case 'r':
-                arguments.action_reboot = true;
-                break;
-            
-            case 'h':
-            default:		/* '?' */
-                usage (argv[0]);
-                exit (0);
+        try{
+            std::string address_ch = address_input.substr(0, b_position);
+            std::string bar_ch = address_input.substr(b_position + 1, address_input.length() - b_position);
+
+            size_t idx;
+            uint32_t address = std::stoi(address_ch, &idx);
+            if(idx != address_ch.length())
+                throw std::invalid_argument("Wrong format of programmer address.\n");
+
+            uint8_t bar = std::stoi(bar_ch, &idx);
+            if(idx != bar_ch.length())
+                throw std::invalid_argument("Wrong format of programmer address.\n");
+
+            args.address = address;
+            args.bar = bar;
+        }
+        catch(...)
+        {
+            throw std::invalid_argument("Wrong format of programmer address.\n");
         }
     }
     
-    return arguments;
+    return args;
 }
 
-void verify_arguments(char* app_name, arguments_t arguments)
+void verify_arguments(arguments_t arguments)
 {
     if(!arguments.action_programming &&
-       !arguments.action_reboot &&
+       !arguments.action_reload &&
        !arguments.action_verification)
     {
-        printf("Please specify action(s) to be executed.\n");
-        usage(app_name);
+        throw std::logic_error("Please specify action(s) to be executed");
     }
     
     if(arguments.device_name.empty())
     {
-        printf("Cannot make any actions without device name.\n"
+        throw std::logic_error("Cannot make any actions without device name.\n"
                 "Please specify device for programming.\n");
-        usage(app_name);
     }
     
     if(arguments.interface.getType() == ProgrammingInterface::INTERFACE_NONE) 
     {
-        printf("Programming interface (SPI/JTAG) is missing.\n"
+        throw std::logic_error("Programming interface (SPI/JTAG) is missing.\n"
                 "Please specify the interface appropriate for the device.\n");
-        usage(app_name);
     } 
 
     if(arguments.firmware_file_path.empty())
     {
-        printf("Firmware file is missing.\n"
+        throw std::logic_error("Firmware file is missing.\n"
                 "Please specify the location of file with firmware.\n");
-        usage(app_name);
     }
     else
     {
         FILE* tmp_file = fopen(arguments.firmware_file_path.c_str(), "r");
         if(tmp_file == NULL)
-            throw "Cannot open source file. Please check if file exists and you have rights to access it.\n";
+            throw std::invalid_argument("Cannot open firmware file. Please check if file exists and you have rights to access it.\n");
         else
             fclose(tmp_file);
     }
@@ -305,15 +296,7 @@ int main (int argc, char *argv[])
     {
         cout << "\nmtca4u_fw_programmer ver. " << VERSION << endl << endl;
         arguments = parse_arguments(argc, argv);
-        verify_arguments(argv[0], arguments);
-                               	
-        //print arguments
-/*        cout << "Programming PROM of " << arguments.device_name << " device\n";
-        if(!arguments.firmware_file_path.empty()) 
-        {
-            printf("Source file: %s\n", arguments.firmware_file_path.c_str());
-        }
-*/        
+        verify_arguments(arguments);
 
         if(arguments.device_name_raw)
         {
@@ -334,7 +317,7 @@ int main (int argc, char *argv[])
                         programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerJTAG(ProgAccessRaw(arguments.device_name, arguments.bar, arguments.address)));
                         break;	
                     default:
-                        throw "Unknown interface\n\n";
+                        throw std::invalid_argument("Unknown interface\n\n");
                 }
             }
             else
@@ -354,7 +337,7 @@ int main (int argc, char *argv[])
                         programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerJTAG(ProgAccessMap(arguments.device_name, arguments.map_file_path, arguments.map_area_name)));
                         break;	
                     default:
-                        throw "Unknown interface\n\n";
+                        throw std::invalid_argument("Unknown interface\n\n");
                 }
             }
         }
@@ -364,7 +347,6 @@ int main (int argc, char *argv[])
             {
                 printf( "DMAP file is missing.\n"
                         "Please specify the location of DMAP file.\n");
-                usage(argv[0]);
             }
             
             cout << "Input mode - DMAP" << endl;
@@ -382,16 +364,15 @@ int main (int argc, char *argv[])
                     programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerJTAG(ProgAccessDmap(arguments.device_name, arguments.dmap_file_path, arguments.map_area_name)));
                     break;	
                 default:
-                    throw "Unknown interface\n\n";
+                    throw std::invalid_argument("Unknown interface\n\n");
             }
         }
         cout << endl << endl;
-        
-        
+           
 #if 1       
         if(!programmer->checkFirmwareFile(arguments.firmware_file_path))
         {
-            fprintf(stderr, "Incorrect firmware file\n");
+            throw std::runtime_error("Incorrect firmware file\n");
         }
         if(arguments.action_programming)
         {
@@ -402,20 +383,20 @@ int main (int argc, char *argv[])
         {
             programmer->verify(arguments.firmware_file_path);
         }
-        if(arguments.action_reboot)
+        if(arguments.action_reload)
         {
             programmer->rebootFPGA();
         }
 #endif
     }
-    catch (const char *exc)		//handle the exceptions
+    catch (const std::exception &e)
     {
-        fprintf (stderr, "\n \nError: %s\n", exc);
+        std::cerr << "\nError: " << e.what() << std::endl;
         return 1;
     }
-    catch (mtca4u::Exception e)
+    catch (...)
     {
-        fprintf (stderr, "\n \nMTCA4U Error: %s\n", e.what());
+        std::cerr << "An unexpected error has occured" << std::endl;
         return 1;
     }
 	

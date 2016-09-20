@@ -11,7 +11,19 @@
 #include "MtcaProgrammerBase.h"
 #include <mtca4u/NumericAddress.h>
 
-MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessRaw & args)
+MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessRaw & args) :
+    mDevice(mtca4u::Device()),
+    reg_area_write(mtca4u::OneDRegisterAccessor<uint32_t>()),
+    reg_area_read(mtca4u::OneDRegisterAccessor<uint32_t>()),    
+    reg_spi_divider(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_bytes_to_write(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_bytes_to_read(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_control(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_tck(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_tms(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_tdi(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_tdo(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_rev_switch(mtca4u::ScalarRegisterAccessor<uint32_t>())
 {
     mDevice.open(args.mDeviceName);
     
@@ -19,7 +31,19 @@ MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessRaw & args)
     initRegisterAccessors(moduleName);
 }
 
-MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessMap & args)
+MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessMap & args) :
+    mDevice(mtca4u::Device()),
+    reg_area_write(mtca4u::OneDRegisterAccessor<uint32_t>()),
+    reg_area_read(mtca4u::OneDRegisterAccessor<uint32_t>()),    
+    reg_spi_divider(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_bytes_to_write(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_bytes_to_read(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_control(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_tck(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_tms(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_tdi(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_tdo(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_rev_switch(mtca4u::ScalarRegisterAccessor<uint32_t>())
 {
     //std::cout << "args.mDeviceName: " << args.mDeviceName << std::endl;
     //std::cout << "args.mMapFilePath: " << args.mMapFilePath << std::endl;
@@ -36,7 +60,19 @@ MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessMap & args)
     initRegisterAccessors(args.mModuleName);
 }
 
-MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessDmap & args)
+MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessDmap & args) :
+    mDevice(mtca4u::Device()),
+    reg_area_write(mtca4u::OneDRegisterAccessor<uint32_t>()),
+    reg_area_read(mtca4u::OneDRegisterAccessor<uint32_t>()),    
+    reg_spi_divider(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_bytes_to_write(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_bytes_to_read(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_control(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_tck(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_tms(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_tdi(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_tdo(mtca4u::ScalarRegisterAccessor<uint32_t>()),
+    reg_rev_switch(mtca4u::ScalarRegisterAccessor<uint32_t>())
 {
     mtca4u::BackendFactory::getInstance().setDMapFilePath(args.mDmapFilePath);
     mDevice.open(args.mDeviceName);
@@ -61,4 +97,5 @@ void MtcaProgrammerBase::initRegisterAccessors(const std::string& registerPathNa
     reg_tms.replace(mDevice.getScalarRegisterAccessor<uint32_t>(registerPathName, REG_TMS));
     reg_tdi.replace(mDevice.getScalarRegisterAccessor<uint32_t>(registerPathName, REG_TDI));
     reg_tdo.replace(mDevice.getScalarRegisterAccessor<uint32_t>(registerPathName, REG_TDO));
+    reg_rev_switch.replace(mDevice.getScalarRegisterAccessor<uint32_t>(registerPathName, REG_REV_SWITCH));
 }

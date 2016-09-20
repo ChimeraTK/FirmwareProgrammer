@@ -17,7 +17,7 @@ VPATH = $(SRC_PATH):$(OBJ_PATH):$(INCLUDE_PATH)
 INCLUDES := $(INCLUDE_PATH:%=-I%)
 
 LIB_DIRS :=
-LIBS := curses
+LIBS := curses boost_program_options
 
 # Uncomment this to enable debug builds
 DEBUG := yes

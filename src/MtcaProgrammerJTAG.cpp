@@ -44,7 +44,7 @@ bool MtcaProgrammerJTAG::checkFirmwareFile(std::string firmwareFile)
     input_file = fopen(firmwareFile.c_str(), "r");
     if(input_file == NULL)
     {
-            throw "Cannot open XSVF file. Maybe the file does not exist\n";
+            throw std::invalid_argument("Cannot open XSVF file. Maybe the file does not exist");
     }
     else
     {
@@ -91,7 +91,9 @@ bool MtcaProgrammerJTAG::verify(std::string firmwareFile)
 
 void MtcaProgrammerJTAG::rebootFPGA()
 {
-    
+    printf("FPGA rebooting...\n");
+    reg_rev_switch = FPGA_REBOOT_WORD;
+    reg_rev_switch.write();
 }
 
 /* setPort:  Implement to set the named JTAG signal (p) to the new value (v).*/
