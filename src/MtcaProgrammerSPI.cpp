@@ -75,6 +75,7 @@ bool MtcaProgrammerSPI::checkFirmwareFile(std::string firmwareFile)
     unsigned char buffer[16];
     int i;
     bool ret = true;
+    bool bit_file = true;
 
     input_file = fopen(firmwareFile.c_str(), "r");
     if(input_file == NULL)
@@ -83,19 +84,28 @@ bool MtcaProgrammerSPI::checkFirmwareFile(std::string firmwareFile)
     }
     else
     {
+            // Check if it is a 'bit' file
             fread(buffer, 1, 14, input_file);
 
             for(i = 0; i < 14; i++)
             {
                     if(buffer[i] != bit_pattern[i])
                     {
-                        ret = false; //Incorrect bit file
+                        bit_file = false; //Incorrect bit file
                         break;   
                     }
             }
-
-            fclose(input_file);
     }
+    
+    if(!bit_file)
+    {
+        // Check if it is a 'bin' file
+        long int offset = findDataOffset(input_file);
+        if(offset != 0)
+            ret = false;
+    }
+    
+    fclose(input_file);
     
     return ret;
 }
