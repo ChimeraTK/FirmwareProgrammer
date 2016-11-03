@@ -123,7 +123,7 @@ void usage (const char *progname)
 arguments_t parse_arguments(int argc, char *argv[])
 {
     arguments_t args;
-    const std::string raw_prefix("sdm");
+    const std::string raw_prefix("sdm://");
     
     // Declare a group of options that will be 
     // allowed only on command line
@@ -298,56 +298,10 @@ int main (int argc, char *argv[])
         arguments = parse_arguments(argc, argv);
         verify_arguments(arguments);
 
-        if(arguments.device_name_raw)
+        if(!arguments.dmap_file_path.empty())           //DMAP mode
         {
-            if(arguments.map_file_path.empty())     // Access raw
-            {
-                cout << "Input mode - Direct" << endl;
-                cout << "Firmware file: " << arguments.firmware_file_path << endl;
-                cout << "Device name: " << arguments.device_name << endl;
-                cout << "Bar: " << (uint32_t)arguments.bar << endl;
-                cout << "Address: " << arguments.address << endl;
-                
-                switch(arguments.interface.getType())
-                {
-                    case ProgrammingInterface::INTERFACE_SPI:
-                        programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerSPI(ProgAccessRaw(arguments.device_name, arguments.bar, arguments.address)));
-                        break;	
-                    case ProgrammingInterface::INTERFACE_JTAG:
-                        programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerJTAG(ProgAccessRaw(arguments.device_name, arguments.bar, arguments.address)));
-                        break;	
-                    default:
-                        throw std::invalid_argument("Unknown interface\n\n");
-                }
-            }
-            else
-            {
-                cout << "Input mode - MAP" << endl;
-                cout << "Firmware file: " << arguments.firmware_file_path << endl;
-                cout << "Device name: " << arguments.device_name << endl;
-                cout << "MAP file: " << arguments.map_file_path << endl;
-                cout << "Module name in MAP file: " << arguments.map_area_name << endl;
-                
-                switch(arguments.interface.getType())
-                {
-                    case ProgrammingInterface::INTERFACE_SPI:
-                        programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerSPI(ProgAccessMap(arguments.device_name, arguments.map_file_path, arguments.map_area_name)));
-                        break;	
-                    case ProgrammingInterface::INTERFACE_JTAG:
-                        programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerJTAG(ProgAccessMap(arguments.device_name, arguments.map_file_path, arguments.map_area_name)));
-                        break;	
-                    default:
-                        throw std::invalid_argument("Unknown interface\n\n");
-                }
-            }
-        }
-        else
-        {
-            if(arguments.dmap_file_path.empty())
-            {
-                printf( "DMAP file is missing.\n"
-                        "Please specify the location of DMAP file.\n");
-            }
+            //printf( "DMAP file is missing.\n"
+            //        "Please specify the location of DMAP file.\n");
             
             cout << "Input mode - DMAP" << endl;
             cout << "Firmware file: " << arguments.firmware_file_path << endl;
@@ -367,8 +321,58 @@ int main (int argc, char *argv[])
                     throw std::invalid_argument("Unknown interface\n\n");
             }
         }
+        else if(!arguments.map_file_path.empty())       //MAP mode
+        {
+            if(!arguments.device_name_raw)
+            {
+                throw std::invalid_argument("Wrong device name.\nPlease specify device name in 'sdm' format\n\n");
+            }
+            
+            cout << "Input mode - MAP" << endl;
+            cout << "Firmware file: " << arguments.firmware_file_path << endl;
+            cout << "Device name: " << arguments.device_name << endl;
+            cout << "MAP file: " << arguments.map_file_path << endl;
+            cout << "Module name in MAP file: " << arguments.map_area_name << endl;
+
+            switch(arguments.interface.getType())
+            {
+                case ProgrammingInterface::INTERFACE_SPI:
+                    programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerSPI(ProgAccessMap(arguments.device_name, arguments.map_file_path, arguments.map_area_name)));
+                    break;	
+                case ProgrammingInterface::INTERFACE_JTAG:
+                    programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerJTAG(ProgAccessMap(arguments.device_name, arguments.map_file_path, arguments.map_area_name)));
+                    break;	
+                default:
+                    throw std::invalid_argument("Unknown interface\n\n");
+            }
+        }
+        else                                            //RAW mode
+        {
+            if(!arguments.device_name_raw)
+            {
+                throw std::invalid_argument("Wrong device name.\nPlease specify device name in 'sdm' format\n\n");
+            }
+            
+            cout << "Input mode - Direct" << endl;
+            cout << "Firmware file: " << arguments.firmware_file_path << endl;
+            cout << "Device name: " << arguments.device_name << endl;
+            cout << "Bar: " << (uint32_t)arguments.bar << endl;
+            cout << "Address: " << arguments.address << endl;
+
+            switch(arguments.interface.getType())
+            {
+                case ProgrammingInterface::INTERFACE_SPI:
+                    programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerSPI(ProgAccessRaw(arguments.device_name, arguments.bar, arguments.address)));
+                    break;	
+                case ProgrammingInterface::INTERFACE_JTAG:
+                    programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerJTAG(ProgAccessRaw(arguments.device_name, arguments.bar, arguments.address)));
+                    break;	
+                default:
+                    throw std::invalid_argument("Unknown interface\n\n");
+            }
+        }
         cout << endl << endl;
-           
+        
 #if 1       
         if(!programmer->checkFirmwareFile(arguments.firmware_file_path))
         {
