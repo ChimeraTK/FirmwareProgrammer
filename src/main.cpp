@@ -385,7 +385,8 @@ int main (int argc, char *argv[])
         }
         if(arguments.action_verification)
         {
-            programmer->verify(arguments.firmware_file_path);
+            if(programmer->verify(arguments.firmware_file_path) == false)
+                return 1;
         }
         if(arguments.action_reload)
         {
