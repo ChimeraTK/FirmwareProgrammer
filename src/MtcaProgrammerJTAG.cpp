@@ -125,7 +125,7 @@ void MtcaProgrammerJTAG::setPort (jtag_port_t p, short val)
 /* read the TDO bit from port */
 unsigned char MtcaProgrammerJTAG::readTDOBit()
 {
-    int data = 0;
+    uint32_t data = 0;
     reg_tdo.read();
     data = reg_tdo;
     return ((unsigned char) (data & 0x1));

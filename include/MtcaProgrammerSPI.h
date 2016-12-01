@@ -46,7 +46,7 @@ private:
     uint64_t getMemoryId();
     int checkMemoryId(uint64_t memory_id);
     void waitForSpi();
-    int32_t readStatus();
+    uint32_t readStatus();
     void enableQuadMode();
     uint32_t writeAddress(uint32_t address, addressing_mode_t addr_mode);
     void memoryWriteEnable();

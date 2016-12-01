@@ -13,17 +13,17 @@
 
 MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessRaw & args) :
     mDevice(mtca4u::Device()),
-    reg_area_write(mtca4u::OneDRegisterAccessor<uint32_t>()),
-    reg_area_read(mtca4u::OneDRegisterAccessor<uint32_t>()),    
-    reg_spi_divider(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_bytes_to_write(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_bytes_to_read(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_control(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_tck(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_tms(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_tdi(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_tdo(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_rev_switch(mtca4u::ScalarRegisterAccessor<uint32_t>())
+    reg_area_write(mtca4u::OneDRegisterAccessor<int32_t>()),
+    reg_area_read(mtca4u::OneDRegisterAccessor<int32_t>()),    
+    reg_spi_divider(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_bytes_to_write(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_bytes_to_read(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_control(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_tck(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_tms(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_tdi(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_tdo(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_rev_switch(mtca4u::ScalarRegisterAccessor<int32_t>())
 {
     mDevice.open(args.mDeviceName);
     
@@ -33,17 +33,17 @@ MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessRaw & args) :
 
 MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessMap & args) :
     mDevice(mtca4u::Device()),
-    reg_area_write(mtca4u::OneDRegisterAccessor<uint32_t>()),
-    reg_area_read(mtca4u::OneDRegisterAccessor<uint32_t>()),    
-    reg_spi_divider(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_bytes_to_write(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_bytes_to_read(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_control(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_tck(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_tms(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_tdi(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_tdo(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_rev_switch(mtca4u::ScalarRegisterAccessor<uint32_t>())
+    reg_area_write(mtca4u::OneDRegisterAccessor<int32_t>()),
+    reg_area_read(mtca4u::OneDRegisterAccessor<int32_t>()),    
+    reg_spi_divider(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_bytes_to_write(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_bytes_to_read(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_control(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_tck(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_tms(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_tdi(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_tdo(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_rev_switch(mtca4u::ScalarRegisterAccessor<int32_t>())
 {
     //std::cout << "args.mDeviceName: " << args.mDeviceName << std::endl;
     //std::cout << "args.mMapFilePath: " << args.mMapFilePath << std::endl;
@@ -62,17 +62,17 @@ MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessMap & args) :
 
 MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessDmap & args) :
     mDevice(mtca4u::Device()),
-    reg_area_write(mtca4u::OneDRegisterAccessor<uint32_t>()),
-    reg_area_read(mtca4u::OneDRegisterAccessor<uint32_t>()),    
-    reg_spi_divider(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_bytes_to_write(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_bytes_to_read(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_control(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_tck(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_tms(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_tdi(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_tdo(mtca4u::ScalarRegisterAccessor<uint32_t>()),
-    reg_rev_switch(mtca4u::ScalarRegisterAccessor<uint32_t>())
+    reg_area_write(mtca4u::OneDRegisterAccessor<int32_t>()),
+    reg_area_read(mtca4u::OneDRegisterAccessor<int32_t>()),    
+    reg_spi_divider(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_bytes_to_write(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_bytes_to_read(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_control(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_tck(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_tms(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_tdi(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_tdo(mtca4u::ScalarRegisterAccessor<int32_t>()),
+    reg_rev_switch(mtca4u::ScalarRegisterAccessor<int32_t>())
 {
     mtca4u::BackendFactory::getInstance().setDMapFilePath(args.mDmapFilePath);
     mDevice.open(args.mDeviceName);
@@ -87,15 +87,15 @@ MtcaProgrammerBase::~MtcaProgrammerBase()
 
 void MtcaProgrammerBase::initRegisterAccessors(const std::string& registerPathName)
 {
-    reg_area_write.replace(mDevice.getOneDRegisterAccessor<uint32_t>(registerPathName, AREA_WRITE_SIZE, AREA_WRITE));
-    reg_area_read.replace(mDevice.getOneDRegisterAccessor<uint32_t>(registerPathName, AREA_READ_SIZE, AREA_READ));
-    reg_spi_divider.replace(mDevice.getScalarRegisterAccessor<uint32_t>(registerPathName, REG_SPI_DIVIDER));
-    reg_bytes_to_write.replace(mDevice.getScalarRegisterAccessor<uint32_t>(registerPathName, REG_BYTES_TO_WRITE));
-    reg_bytes_to_read.replace(mDevice.getScalarRegisterAccessor<uint32_t>(registerPathName, REG_BYTES_TO_READ));
-    reg_control.replace(mDevice.getScalarRegisterAccessor<uint32_t>(registerPathName, REG_CONTROL));
-    reg_tck.replace(mDevice.getScalarRegisterAccessor<uint32_t>(registerPathName, REG_TCK));
-    reg_tms.replace(mDevice.getScalarRegisterAccessor<uint32_t>(registerPathName, REG_TMS));
-    reg_tdi.replace(mDevice.getScalarRegisterAccessor<uint32_t>(registerPathName, REG_TDI));
-    reg_tdo.replace(mDevice.getScalarRegisterAccessor<uint32_t>(registerPathName, REG_TDO));
-    reg_rev_switch.replace(mDevice.getScalarRegisterAccessor<uint32_t>(registerPathName, REG_REV_SWITCH));
+    reg_area_write.replace(mDevice.getOneDRegisterAccessor<int32_t>(registerPathName, AREA_WRITE_SIZE, AREA_WRITE, {mtca4u::AccessMode::raw}));
+    reg_area_read.replace(mDevice.getOneDRegisterAccessor<int32_t>(registerPathName, AREA_READ_SIZE, AREA_READ, {mtca4u::AccessMode::raw}));
+    reg_spi_divider.replace(mDevice.getScalarRegisterAccessor<int32_t>(registerPathName, REG_SPI_DIVIDER, {mtca4u::AccessMode::raw}));
+    reg_bytes_to_write.replace(mDevice.getScalarRegisterAccessor<int32_t>(registerPathName, REG_BYTES_TO_WRITE, {mtca4u::AccessMode::raw}));
+    reg_bytes_to_read.replace(mDevice.getScalarRegisterAccessor<int32_t>(registerPathName, REG_BYTES_TO_READ, {mtca4u::AccessMode::raw}));
+    reg_control.replace(mDevice.getScalarRegisterAccessor<int32_t>(registerPathName, REG_CONTROL, {mtca4u::AccessMode::raw}));
+    reg_tck.replace(mDevice.getScalarRegisterAccessor<int32_t>(registerPathName, REG_TCK, {mtca4u::AccessMode::raw}));
+    reg_tms.replace(mDevice.getScalarRegisterAccessor<int32_t>(registerPathName, REG_TMS, {mtca4u::AccessMode::raw}));
+    reg_tdi.replace(mDevice.getScalarRegisterAccessor<int32_t>(registerPathName, REG_TDI, {mtca4u::AccessMode::raw}));
+    reg_tdo.replace(mDevice.getScalarRegisterAccessor<int32_t>(registerPathName, REG_TDO, {mtca4u::AccessMode::raw}));
+    reg_rev_switch.replace(mDevice.getScalarRegisterAccessor<int32_t>(registerPathName, REG_REV_SWITCH, {mtca4u::AccessMode::raw}));
 }

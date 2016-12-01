@@ -150,7 +150,7 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile)
         throw std::runtime_error("Unknown, not present or busy SPI prom");
     
     unsigned char buffer[1024];
-    int32_t data;
+    uint32_t data;
     unsigned int bread;
     unsigned int addr = 0;
     unsigned int file_size;
@@ -251,7 +251,7 @@ uint64_t MtcaProgrammerSPI::getMemoryId()
     reg_area_read.read();
     for(int i = 0; i < 5; i++)
     {
-        int32_t id_val;
+        uint32_t id_val;
         id_val = reg_area_read[i];
         mem_id |= ((uint64_t)id_val & 0xFF) << (i * 8);
     }
@@ -274,7 +274,7 @@ int MtcaProgrammerSPI::checkMemoryId(uint64_t memory_id)
 /** wait until SPI data is transmitted to the device and the response is received from the device */
 void MtcaProgrammerSPI::waitForSpi()
 {
-    int32_t data;
+    uint32_t data;
     unsigned int i=0;
     do
     {
@@ -283,7 +283,8 @@ void MtcaProgrammerSPI::waitForSpi()
         //printf("waitForSpi() - data = 0x%X\n", data);
         usleep(1);
         if(i++ == 10000) 
-            throw std::runtime_error("Timeout waiting for SPI completion\nTry rescanning PCIe bus");
+            throw std::runtime_error("Timeout waiting for SPI response\n"
+                                     "It can be a problem with communication interface (PCIe/Eth) or programmer module is not available in FPGA");
     }
     while (data & 1);
 }
@@ -346,9 +347,9 @@ void MtcaProgrammerSPI::memoryBulkErase()
 }
 
 /** read status register from the SPI flash */
-int32_t MtcaProgrammerSPI::readStatus()
+uint32_t MtcaProgrammerSPI::readStatus()
 {
-    int32_t data;
+    uint32_t data;
     reg_area_write[0] = 0x05;
     reg_area_write.write();
     reg_bytes_to_read = 0x0;
@@ -366,7 +367,7 @@ int32_t MtcaProgrammerSPI::readStatus()
 
 void MtcaProgrammerSPI::enableQuadMode()
 {
-    int32_t data;
+    uint32_t data;
 
     reg_area_write[0] = 0x35;
     reg_area_write.write();
