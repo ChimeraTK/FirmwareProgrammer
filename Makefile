@@ -2,7 +2,7 @@
 # Debian packages are built on tagged versions of the project. The tagged
 # version number is specified through the fw_programmer_version file. Including
 # this file imports the FW_PROGRAMMER_VERSION variable into the makefile
-include fw_programmer_version
+#include fw_programmer_version
 
 # Input file settings
 CXX := g++
