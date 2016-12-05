@@ -2,9 +2,6 @@
 <configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="." name="0">
-      <df name="include">
-        <in>version.h</in>
-      </df>
       <df name="src">
         <in>MtcaProgrammerBase.cpp</in>
         <in>MtcaProgrammerJTAG.cpp</in>
@@ -35,7 +32,7 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <flagsDictionary>
-        <element flagsID="0" commonFlags="-fPIC -ansi -std=c++0x"/>
+        <element flagsID="0" commonFlags="-fPIC -ansi -std=c++0x -std=c++11"/>
       </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
@@ -47,18 +44,18 @@
           <executablePath></executablePath>
           <ccTool>
             <incDir>
+              <pElem>/usr/include</pElem>
               <pElem>include</pElem>
-              <pElem>/usr/include/mtca4u</pElem>
               <pElem>.</pElem>
             </incDir>
             <preprocessorList>
+              <Elem>FUSION_MAX_MAP_SIZE=30</Elem>
+              <Elem>FUSION_MAX_VECTOR_SIZE=30</Elem>
               <Elem>SVN_REV=XX</Elem>
             </preprocessorList>
           </ccTool>
         </makeTool>
       </makefileType>
-      <item path="include/version.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="src/MtcaProgrammerBase.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
         </ccTool>
