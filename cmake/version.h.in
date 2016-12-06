@@ -1,0 +1,20 @@
+/* 
+ * File:   version.h
+ * Author: pperek
+ *
+ * Created on 15 wrzesień 2015, 12:36
+ */
+
+#ifndef VERSION_H
+#define	VERSION_H
+
+#define VERSION_MAJ                 @ChimeraTK_FirmwareProgrammer_MAJOR_VERSION@
+#define VERSION_MIN                 @ChimeraTK_FirmwareProgrammer_MINOR_VERSION@
+#define VERSION_PATCH               @ChimeraTK_FirmwareProgrammer_PATCH_VERSION@
+
+#define TO_STR2(x) #x
+#define TO_STR(x) TO_STR2(x)
+#define VERSION (TO_STR(VERSION_MAJ) "." TO_STR(VERSION_MIN) "." TO_STR(VERSION_PATCH))
+
+#endif	/* VERSION_H */
+

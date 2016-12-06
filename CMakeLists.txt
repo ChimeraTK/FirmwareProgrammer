@@ -31,6 +31,11 @@ include_directories(SYSTEM ${CURSES_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 AUX_SOURCE_DIRECTORY(${CMAKE_SOURCE_DIR}/src app_sources)
 
+#put the version number into the version file and add the include directory in the build tree, where we put it
+configure_file(cmake/version.h.in
+  "${PROJECT_BINARY_DIR}/include/version.h" @ONLY)
+include_directories(${PROJECT_BINARY_DIR}/include)
+
 set(EXEC_NAME mtca4u_fw_programmer)
 add_executable(${EXEC_NAME} ${app_sources} )
 set_target_properties(${EXEC_NAME} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS}")
