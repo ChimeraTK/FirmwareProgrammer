@@ -4,7 +4,7 @@ project(ChimeraTK_FirmwareProgrammer)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 04)
 set(${PROJECT_NAME}_MINOR_VERSION 00)
-set(${PROJECT_NAME}_PATCH_VERSION 01)
+set(${PROJECT_NAME}_PATCH_VERSION 02)
 
 ## Set additional version-specific variables
 include(${CMAKE_SOURCE_DIR}/cmake/set_version_numbers.cmake)
