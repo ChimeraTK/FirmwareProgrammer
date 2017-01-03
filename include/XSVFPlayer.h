@@ -15,6 +15,8 @@
 class XSVFPlayer {
 public:
     XSVFPlayer(XSVFPlayerInterface &interface);
+    XSVFPlayer(const XSVFPlayer&) = delete;
+    XSVFPlayer& operator=(const XSVFPlayer&) = delete;
     virtual ~XSVFPlayer();
     
     void run(std::string file);

@@ -76,6 +76,7 @@ bool MtcaProgrammerSPI::checkFirmwareFile(std::string firmwareFile)
     int i;
     bool ret = true;
     bool bit_file = true;
+    size_t bytes_read;
 
     input_file = fopen(firmwareFile.c_str(), "r");
     if(input_file == NULL)
@@ -85,8 +86,13 @@ bool MtcaProgrammerSPI::checkFirmwareFile(std::string firmwareFile)
     else
     {
             // Check if it is a 'bit' file
-            fread(buffer, 1, 14, input_file);
-
+            bytes_read = fread(buffer, 1, 14, input_file);
+            if(bytes_read != 14)
+            {
+                fclose(input_file);
+                throw std::runtime_error("Cannot read verification pattern from bitstream file");
+            }
+            
             for(i = 0; i < 14; i++)
             {
                     if(buffer[i] != bit_pattern[i])
@@ -407,12 +413,18 @@ long int MtcaProgrammerSPI::findDataOffset(FILE *file)
     const unsigned char c3 = 0x55;
     const unsigned char c4 = 0x66;
     const unsigned char c0 = 0xff;
+    size_t bytes_read;
 
     if(!file)
         return -1;
 
     fseek(file, 0, SEEK_SET);
-    fread(buffer, 1, 512, file);
+    bytes_read = fread(buffer, 1, 512, file);
+    if(bytes_read != 512)
+    {
+            fclose(file);
+            throw std::runtime_error("Cannot read header data from bitstream file");
+    }
     fseek(file, 0, SEEK_SET);
 
     /* ok if header shorter than 512 bytes  */

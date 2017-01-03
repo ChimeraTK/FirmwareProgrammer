@@ -1348,18 +1348,21 @@ int XSVFPlayer::xsvfDoXCOMMENT( SXsvfInfo* pXsvfInfo )
     /* Otherwise, read through the comment to the end '\0' and ignore */
     unsigned char   ucText;
 
+#ifdef  DEBUG_MODE
     if ( xsvf_iDebugLevel > 0 )
     {
         putchar( ' ' );
     }
-
+#endif
     do
     {
         readByte( &ucText );
+#ifdef  DEBUG_MODE
         if ( xsvf_iDebugLevel > 0 )
         {
             putchar( ucText ? ucText : '\n' );
         }
+#endif
     } while ( ucText );
 
     pXsvfInfo->iErrorCode   = XSVF_ERROR_NONE;

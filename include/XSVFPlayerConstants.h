@@ -13,7 +13,7 @@
 /*============================================================================
 * #include files
 ============================================================================*/
-#define DEBUG_MODE
+//#define DEBUG_MODE
 #ifdef  DEBUG_MODE
     #include <stdio.h>
     #include <stdlib.h>

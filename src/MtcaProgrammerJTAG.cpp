@@ -40,6 +40,7 @@ bool MtcaProgrammerJTAG::checkFirmwareFile(std::string firmwareFile)
     unsigned char buffer[16];
     int i;
     bool ret = true;
+    size_t bytes_read;
 
     input_file = fopen(firmwareFile.c_str(), "r");
     if(input_file == NULL)
@@ -48,8 +49,13 @@ bool MtcaProgrammerJTAG::checkFirmwareFile(std::string firmwareFile)
     }
     else
     {
-            fread(buffer, 1, 16, input_file);
-
+            bytes_read = fread(buffer, 1, 16, input_file);
+            if(bytes_read != 16)
+            {
+                fclose(input_file);
+                throw std::runtime_error("Cannot read verification pattern from XSVF file");
+            }
+            
             for(i = 0; i < 16; i++)
             {
                     if(buffer[i] != xsvf_pattern[i])
@@ -84,7 +90,7 @@ void MtcaProgrammerJTAG::program(std::string firmwareFile)
     printf("\nProgramming finished\n");
 }
 
-bool MtcaProgrammerJTAG::verify(std::string firmwareFile)
+bool MtcaProgrammerJTAG::verify(std::string )
 {
     return true;
 }
