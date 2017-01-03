@@ -73,10 +73,8 @@ bool MtcaProgrammerSPI::checkFirmwareFile(std::string firmwareFile)
 {
     FILE *input_file;
     unsigned char buffer[16];
-    int i;
     bool ret = true;
     bool bit_file = true;
-    size_t bytes_read;
 
     input_file = fopen(firmwareFile.c_str(), "r");
     if(input_file == NULL)
@@ -86,14 +84,14 @@ bool MtcaProgrammerSPI::checkFirmwareFile(std::string firmwareFile)
     else
     {
             // Check if it is a 'bit' file
-            bytes_read = fread(buffer, 1, 14, input_file);
+            size_t bytes_read = fread(buffer, 1, 14, input_file);
             if(bytes_read != 14)
             {
                 fclose(input_file);
                 throw std::runtime_error("Cannot read verification pattern from bitstream file");
             }
             
-            for(i = 0; i < 14; i++)
+            for(int i = 0; i < 14; i++)
             {
                     if(buffer[i] != bit_pattern[i])
                     {

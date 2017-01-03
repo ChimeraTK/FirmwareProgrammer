@@ -29,7 +29,6 @@ void ProgressBar(double TotalToDownload, double NowDownloaded)
 
     int progress = lround((NowDownloaded / TotalToDownload) * 100);
     int barlength = lround(((float)progress / 100) * total_barlength);
-    int ii=0;
 
     if(progress != last_value)
     {
@@ -40,6 +39,7 @@ void ProgressBar(double TotalToDownload, double NowDownloaded)
         
 	tputs(clr_eol, 1, my_putchar);			//clear line
 	printf("%4d%% [", progress);
+        int ii=0;
 	for ( ; ii < barlength;ii++) {
 	    printf("=");
 	}

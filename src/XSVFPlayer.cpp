@@ -210,12 +210,10 @@ int XSVFPlayer::xsvfPfDoCmd( unsigned char command, SXsvfInfo* pXsvfInfo )
 #ifdef  DEBUG_MODE
 void XSVFPlayer::xsvfPrintLenVal( lenVal *plv )
 {
-    int i;
-
     if ( plv )
     {
         printf( "0x" );
-        for ( i = 0; i < plv->len; ++i )
+        for ( int i = 0; i < plv->len; ++i )
         {
             printf( "%02x", ((unsigned int)(plv->val[ i ])) );
         }
@@ -292,7 +290,6 @@ void XSVFPlayer::xsvfTmsTransition( short sTms )
 int XSVFPlayer::xsvfGotoTapState( unsigned char*   pucTapState,
                       unsigned char    ucTargetState )
 {
-    int i;
     int iErrorCode;
 
     iErrorCode  = XSVF_ERROR_NONE;
@@ -300,7 +297,7 @@ int XSVFPlayer::xsvfGotoTapState( unsigned char*   pucTapState,
     {
         /* If RESET, always perform TMS reset sequence to reset/sync TAPs */
         xsvfTmsTransition( 1 );
-        for ( i = 0; i < 5; ++i )
+        for ( int i = 0; i < 5; ++i )
         {
             SET_PORT( TCK, 0 );
             SET_PORT( TCK, 1 );
@@ -1134,10 +1131,7 @@ int XSVFPlayer::xsvfDoXSETSDRMASKS( SXsvfInfo* pXsvfInfo )
 int XSVFPlayer::xsvfDoXSDRINC( SXsvfInfo* pXsvfInfo )
 {
     int             iErrorCode;
-    int             iDataMaskLen;
-    unsigned char   ucDataMask;
     unsigned char   ucNumTimes;
-    unsigned char   i;
 
     readVal( &(pXsvfInfo->lvTdi), pXsvfInfo->sShiftLengthBytes );
     iErrorCode  = xsvfShift( &(pXsvfInfo->ucTapState), XTAPSTATE_SHIFTDR,
@@ -1148,11 +1142,13 @@ int XSVFPlayer::xsvfDoXSDRINC( SXsvfInfo* pXsvfInfo )
                              pXsvfInfo->lRunTestTime, pXsvfInfo->ucMaxRepeat );
     if ( !iErrorCode )
     {
+        unsigned char i = 0;
+        
         /* Calculate number of data mask bits */
-        iDataMaskLen    = 0;
+        int iDataMaskLen    = 0;
         for ( i = 0; i < pXsvfInfo->lvDataMask.len; ++i )
         {
-            ucDataMask  = pXsvfInfo->lvDataMask.val[ i ];
+            unsigned char ucDataMask  = pXsvfInfo->lvDataMask.val[ i ];
             while ( ucDataMask )
             {
                 iDataMaskLen    += ( ucDataMask & 1 );
