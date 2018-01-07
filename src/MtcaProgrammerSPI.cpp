@@ -191,7 +191,9 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile)
             fclose (f);
             return true;
         }
-
+        reg_control = 0 ; // clear reg control status before write to buffer
+        reg_control.write();
+        
         reg_area_write[0] = getCommand("FAST_READ", addr_mode);
         uint32_t reg_offset = writeAddress(addr, addr_mode);
         reg_area_write.write();
@@ -238,6 +240,9 @@ uint64_t MtcaProgrammerSPI::getMemoryId()
     
     for(int i = 0; i < 2; i++)   // first read returns garbage
     {
+        reg_control = 0 ; // clear reg control status before write to buffer
+        reg_control.write();
+        
         reg_area_write[0] = 0x9F;
         reg_area_write.write();
         reg_bytes_to_write = 0;
@@ -284,13 +289,13 @@ void MtcaProgrammerSPI::waitForSpi()
     {
         reg_control.read();
         data = reg_control;
-        //printf("waitForSpi() - data = 0x%X\n", data);
-        usleep(1);
-        if(i++ == 10000) 
+        // printf("waitForSpi() - data = 0x%X\n", data);
+        // usleep(1);
+        if(i++ == 1000000) 
             throw std::runtime_error("Timeout waiting for SPI response\n"
                                      "It can be a problem with communication interface (PCIe/Eth) or programmer module is not available in FPGA");
     }
-    while (data & 1);
+    while ((data & (SPI_PROG|SPI_START) ) != (SPI_PROG));
 }
 
 uint32_t MtcaProgrammerSPI::writeAddress(uint32_t address, addressing_mode_t addr_mode)
@@ -311,6 +316,9 @@ uint32_t MtcaProgrammerSPI::writeAddress(uint32_t address, addressing_mode_t add
 
 void MtcaProgrammerSPI::memoryWriteEnable()
 {
+    reg_control = 0 ; // clear reg control status before write to buffer
+    reg_control.write();
+    
     reg_area_write[0] = 0x06;
     reg_area_write.write();
     reg_bytes_to_write = 0;
@@ -329,6 +337,10 @@ void MtcaProgrammerSPI::memoryBulkErase()
     double progress = 0;
 
     printf ("\nBulk erase\n");
+    
+    reg_control = 0 ; // clear reg control status before write to buffer
+    reg_control.write();
+    
     reg_area_write[0] = 0xC7;
     reg_area_write.write();
     reg_control = (PCIE_V5 | SPI_PROG | SPI_START);
@@ -354,6 +366,10 @@ void MtcaProgrammerSPI::memoryBulkErase()
 uint32_t MtcaProgrammerSPI::readStatus()
 {
     uint32_t data;
+        
+    reg_control = 0 ; // clear reg control status before write to buffer
+    reg_control.write();
+    
     reg_area_write[0] = 0x05;
     reg_area_write.write();
     reg_bytes_to_read = 0x0;
@@ -373,6 +389,9 @@ void MtcaProgrammerSPI::enableQuadMode()
 {
     uint32_t data;
 
+    reg_control = 0 ;
+    reg_control.write();
+    
     reg_area_write[0] = 0x35;
     reg_area_write.write();
     reg_bytes_to_read = 0x0;
@@ -385,6 +404,10 @@ void MtcaProgrammerSPI::enableQuadMode()
     reg_area_read.read();
     data = reg_area_read[0];
     data |= 0x02;
+    
+
+    reg_control = 0 ; 
+    reg_control.write();
     
     reg_area_write[0] = 0x01;
     reg_area_write[1] = 0x00;
@@ -506,6 +529,9 @@ void MtcaProgrammerSPI::programMemoryPage(unsigned int address, unsigned int siz
         reg_area_write[(reg_offset + i)] = buffer[i];
         //printf("Data: 0x%x %d\n", buffer[i], i );
     }
+    reg_control = 0 ; 
+    reg_control.write();
+    
     reg_area_write.write();   
     reg_bytes_to_write = size + reg_offset - 1;
     reg_bytes_to_write.write();

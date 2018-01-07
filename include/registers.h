@@ -33,15 +33,15 @@
 /* BITS                                                              */
 /*********************************************************************/
 // Control register (REG_CONTROL)
-#define SPI_START		0x00000001	//start spi operation
-#define SPI_R_NW		0x00000002	//SPI read/write (0 - write, 1 - read)
-#define DSP_SPI_BOOT		0x00000008	//DSP_boot source (1 - boot from SPI)
-#define SPI_PROG		0x00000010	//0 - DSP, 1 - SPI
-#define PCIE_V5			0x00000020	//PCIE mux (0 - RTM, 1 - V5)
-#define SPIREADER_RESET		0x08000000
-#define DSP_RESET		0x80000000
+#define SPI_START              0x00000001  //start spi operation
+#define SPI_R_NW               0x00000002  //SPI read/write (0 - write, 1 - read)
+#define DSP_SPI_BOOT           0x00000008  //DSP_boot source (1 - boot from SPI)
+#define SPI_PROG               0x00000010  //0 - DSP, 1 - SPI
+#define PCIE_V5                0x00000020  //PCIE mux (0 - RTM, 1 - V5)
+#define SPIREADER_RESET        0x08000000
+#define DSP_RESET              0x80000000
 
 // Revision switch register (REG_REV_SWITCH)
-#define FPGA_REBOOT_WORD            0x2EB00701
+#define FPGA_REBOOT_WORD       0x2EB00701
 
 #endif /*_REGISTERS_H_*/
