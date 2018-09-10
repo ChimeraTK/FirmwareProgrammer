@@ -7,9 +7,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <mtca4u/Device.h>
-#include <mtca4u/RegisterPath.h>
-#include <mtca4u/AccessMode.h>
+#include <ChimeraTK/Device.h>
+#include <ChimeraTK/RegisterPath.h>
+#include <ChimeraTK/AccessMode.h>
 
 #include "MtcaProgrammerSPI.h"
 

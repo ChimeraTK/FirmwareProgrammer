@@ -8,7 +8,7 @@
 #ifndef MTCAPROGRAMMERBASE_H
 #define	MTCAPROGRAMMERBASE_H
 
-#include <mtca4u/Device.h>
+#include <ChimeraTK/Device.h>
 
 #include "registers.h"
 
@@ -60,19 +60,19 @@ public:
     virtual void rebootFPGA() = 0;
     
 protected:
-    mtca4u::Device mDevice;
+    ChimeraTK::Device mDevice;
     
-    mtca4u::OneDRegisterAccessor<int32_t> reg_area_write;
-    mtca4u::OneDRegisterAccessor<int32_t> reg_area_read;    
-    mtca4u::ScalarRegisterAccessor<int32_t> reg_spi_divider;
-    mtca4u::ScalarRegisterAccessor<int32_t> reg_bytes_to_write;
-    mtca4u::ScalarRegisterAccessor<int32_t> reg_bytes_to_read;
-    mtca4u::ScalarRegisterAccessor<int32_t> reg_control;
-    mtca4u::ScalarRegisterAccessor<int32_t> reg_tck;
-    mtca4u::ScalarRegisterAccessor<int32_t> reg_tms;
-    mtca4u::ScalarRegisterAccessor<int32_t> reg_tdi;
-    mtca4u::ScalarRegisterAccessor<int32_t> reg_tdo;
-    mtca4u::ScalarRegisterAccessor<int32_t> reg_rev_switch;
+    ChimeraTK::OneDRegisterAccessor<int32_t> reg_area_write;
+    ChimeraTK::OneDRegisterAccessor<int32_t> reg_area_read;    
+    ChimeraTK::ScalarRegisterAccessor<int32_t> reg_spi_divider;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> reg_bytes_to_write;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> reg_bytes_to_read;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> reg_control;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> reg_tck;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> reg_tms;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> reg_tdi;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> reg_tdo;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> reg_rev_switch;
     
 private:
     void initRegisterAccessors(const std::string &registerPathName);

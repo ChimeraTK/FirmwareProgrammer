@@ -4,7 +4,7 @@ project(ChimeraTK_FirmwareProgrammer)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 04)
 set(${PROJECT_NAME}_MINOR_VERSION 01)
-set(${PROJECT_NAME}_PATCH_VERSION 00)
+set(${PROJECT_NAME}_PATCH_VERSION 01)
 
 ## Set additional version-specific variables
 include(${CMAKE_SOURCE_DIR}/cmake/set_version_numbers.cmake)
@@ -21,7 +21,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC -Wextra -Wshadow -pedantic -
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 --coverage")
 
 include(cmake/add_dependency.cmake)
-add_dependency(mtca4u-deviceaccess 0.16 REQUIRED)
+add_dependency(mtca4u-deviceaccess 0.33 REQUIRED)
 add_dependency(Boost 1.46 program_options REQUIRED)
 
 #Add Curses dependency
