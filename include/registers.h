@@ -4,11 +4,12 @@
 #define PROG_DEFAULT_ADDRESS        65536
 #define PROG_DEFAULT_BAR            0
 #define PROG_DEFAULT_MODULE_NAME    "BOARD0.AREA_BOOT"
+#define PROG_DEFAULT_MODULE_NAME2   "BOARD.0.AREA_BOOT"
 
 #define PROG_REG_AREA_SIZE          65536
 
-/* Addresses of programmer registers                                
- * All addressses are relative to base offset that can be specified 
+/* Addresses of programmer registers
+ * All addressses are relative to base offset that can be specified
  * as an argument of the application
  * All below values are in words (4 bytes)
  */

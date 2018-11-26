@@ -37,14 +37,14 @@
 using namespace std;
 namespace po = boost::program_options;
 
-class ProgrammingInterface {    
+class ProgrammingInterface {
 public:
     enum InterfaceType {
         INTERFACE_NONE,
         INTERFACE_SPI,
         INTERFACE_JTAG
     };
-    
+
     ProgrammingInterface() : mType(INTERFACE_NONE){};
     ProgrammingInterface(InterfaceType type) : mType(type){};
     std::string toString()
@@ -61,7 +61,7 @@ public:
                 return "Unknown";
         }
     }
-    
+
     InterfaceType getType() {return mType;}
 private:
     InterfaceType mType;
@@ -80,8 +80,8 @@ struct arguments_t{
     bool action_programming;
     bool action_verification;
     bool action_reload;
-    
-    arguments_t() : 
+
+    arguments_t() :
         interface(ProgrammingInterface(ProgrammingInterface::INTERFACE_NONE)),
         firmware_file_path(),
         device_name(),
@@ -90,13 +90,13 @@ struct arguments_t{
         bar(PROG_DEFAULT_BAR),
         dmap_file_path(),
         map_file_path(),
-        map_area_name(PROG_DEFAULT_MODULE_NAME),
+        map_area_name("**DEFAULT**"),
         action_programming(false),
         action_verification(false),
         action_reload(false)
     {
     }
-    
+
     string toString()
     {
         ostringstream os;
@@ -106,13 +106,13 @@ struct arguments_t{
         os << "Programmer:" << endl;
         os << "\taddress: " << address << endl;
         os << "\tbar:" << bar << endl;
-        
+
         return os.str();
     }
 };
 
 /** explain the usage of the program */
-void usage (const char *progname) 
+void usage (const char *progname)
 {
     std::cout << "Usage:" << std::endl;
     std::cout << "1) Direct: " << progname << " -d [device] [actions] -i [interface] -f [firmware file] -a [address]b[bar]" << std::endl;
@@ -124,16 +124,16 @@ arguments_t parse_arguments(int argc, char *argv[])
 {
     arguments_t args;
     const std::string raw_prefix("sdm://");
-    
-    // Declare a group of options that will be 
+
+    // Declare a group of options that will be
     // allowed only on command line
     po::options_description generic("Generic options");
     generic.add_options()
         ("help,h", "produce help message")
-        ("config,c", po::value<string>(), "set configuration file")    
+        ("config,c", po::value<string>(), "set configuration file")
     ;
-    
-    // Declare a group of options that will be 
+
+    // Declare a group of options that will be
     // allowed both on command line and in
     // config file
     po::options_description config("Configuration");
@@ -149,42 +149,42 @@ arguments_t parse_arguments(int argc, char *argv[])
         ("map,M", po::value<string>(), "MAP file path")
         ("boot_area,R", po::value<string>(), "boot area name in MAP file")
     ;
-    
+
     po::options_description cmdline_options;
     cmdline_options.add(generic).add(config);
 
     po::options_description config_file_options;
     config_file_options.add(config);
-    
+
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
     po::notify(vm);
-    
+
     if (vm.count("help")) {
         usage(argv[0]);
         cout << cmdline_options << "\n";
         exit(1);
     }
-    
+
     if(vm.count("config"))
     {
         std::string config_file_path = vm["config"].as<std::string>();
         cout << "Configuration file path: "  << config_file_path << "\n";
-        
+
         po::store(po::parse_config_file<char>(config_file_path.c_str(), config_file_options), vm);
-        po::notify(vm); 
+        po::notify(vm);
     }
 
     args.action_programming = vm["program"].as<bool>();
     args.action_verification = vm["verify"].as<bool>();
     args.action_reload = vm["reload"].as<bool>();
-    
+
     if(vm.count("device")){
         args.device_name = vm["device"].as<std::string>();
         if(args.device_name.compare(0, raw_prefix.size(), raw_prefix) == 0)
             args.device_name_raw = true;
     }
-    
+
     if(vm.count("interface")){
         std::string interface = vm["interface"].as<std::string>();
         if(interface.empty())
@@ -193,22 +193,22 @@ arguments_t parse_arguments(int argc, char *argv[])
             args.interface = ProgrammingInterface(ProgrammingInterface::INTERFACE_SPI);
         else if (interface.compare("jtag") == 0)
             args.interface = ProgrammingInterface(ProgrammingInterface::INTERFACE_JTAG);
-        else 
+        else
             throw std::invalid_argument("Unknown protocol, use spi or jtag\n");
     }
-    
+
     if(vm.count("firmware_file"))
         args.firmware_file_path = vm["firmware_file"].as<std::string>();
-    
+
     if(vm.count("dmap"))
         args.dmap_file_path = vm["dmap"].as<std::string>();
-    
+
     if(vm.count("map"))
         args.map_file_path = vm["map"].as<std::string>();
-    
+
     if(vm.count("boot_area"))
         args.map_area_name = vm["boot_area"].as<std::string>();
-    
+
     if(vm.count("address"))
     {
         std::string address_input = vm["address"].as<std::string>();
@@ -246,7 +246,7 @@ arguments_t parse_arguments(int argc, char *argv[])
             throw std::invalid_argument("Wrong format of programmer address.\n");
         }
     }
-    
+
     return args;
 }
 
@@ -258,18 +258,18 @@ void verify_arguments(arguments_t arguments)
     {
         throw std::logic_error("Please specify action(s) to be executed");
     }
-    
+
     if(arguments.device_name.empty())
     {
         throw std::logic_error("Cannot make any actions without device name.\n"
                 "Please specify device for programming.\n");
     }
-    
-    if(arguments.interface.getType() == ProgrammingInterface::INTERFACE_NONE) 
+
+    if(arguments.interface.getType() == ProgrammingInterface::INTERFACE_NONE)
     {
         throw std::logic_error("Programming interface (SPI/JTAG) is missing.\n"
                 "Please specify the interface appropriate for the device.\n");
-    } 
+    }
 
     if(arguments.firmware_file_path.empty())
     {
@@ -289,9 +289,9 @@ void verify_arguments(arguments_t arguments)
 int main (int argc, char *argv[])
 {
     boost::shared_ptr<MtcaProgrammerBase> programmer;
-        
+
     arguments_t arguments;
-    
+
     try
     {
         cout << "\nmtca4u_fw_programmer ver. " << VERSION << endl << endl;
@@ -302,21 +302,21 @@ int main (int argc, char *argv[])
         {
             //printf( "DMAP file is missing.\n"
             //        "Please specify the location of DMAP file.\n");
-            
+
             cout << "Input mode - DMAP" << endl;
             cout << "Firmware file: " << arguments.firmware_file_path << endl;
             cout << "DMAP file: " << arguments.dmap_file_path << endl;
             cout << "Device name: " << arguments.device_name << endl;
             cout << "Module name in MAP file: " << arguments.map_area_name << endl;
-            
+
             switch(arguments.interface.getType())
             {
                 case ProgrammingInterface::INTERFACE_SPI:
                     programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerSPI(ProgAccessDmap(arguments.device_name, arguments.dmap_file_path, arguments.map_area_name)));
-                    break;	
+                    break;
                 case ProgrammingInterface::INTERFACE_JTAG:
                     programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerJTAG(ProgAccessDmap(arguments.device_name, arguments.dmap_file_path, arguments.map_area_name)));
-                    break;	
+                    break;
                 default:
                     throw std::invalid_argument("Unknown interface\n\n");
             }
@@ -327,7 +327,7 @@ int main (int argc, char *argv[])
             {
                 throw std::invalid_argument("Wrong device name.\nPlease specify device name in 'sdm' format\n\n");
             }
-            
+
             cout << "Input mode - MAP" << endl;
             cout << "Firmware file: " << arguments.firmware_file_path << endl;
             cout << "Device name: " << arguments.device_name << endl;
@@ -338,10 +338,10 @@ int main (int argc, char *argv[])
             {
                 case ProgrammingInterface::INTERFACE_SPI:
                     programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerSPI(ProgAccessMap(arguments.device_name, arguments.map_file_path, arguments.map_area_name)));
-                    break;	
+                    break;
                 case ProgrammingInterface::INTERFACE_JTAG:
                     programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerJTAG(ProgAccessMap(arguments.device_name, arguments.map_file_path, arguments.map_area_name)));
-                    break;	
+                    break;
                 default:
                     throw std::invalid_argument("Unknown interface\n\n");
             }
@@ -352,7 +352,7 @@ int main (int argc, char *argv[])
             {
                 throw std::invalid_argument("Wrong device name.\nPlease specify device name in 'sdm' format\n\n");
             }
-            
+
             cout << "Input mode - Direct" << endl;
             cout << "Firmware file: " << arguments.firmware_file_path << endl;
             cout << "Device name: " << arguments.device_name << endl;
@@ -363,17 +363,17 @@ int main (int argc, char *argv[])
             {
                 case ProgrammingInterface::INTERFACE_SPI:
                     programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerSPI(ProgAccessRaw(arguments.device_name, arguments.bar, arguments.address)));
-                    break;	
+                    break;
                 case ProgrammingInterface::INTERFACE_JTAG:
                     programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerJTAG(ProgAccessRaw(arguments.device_name, arguments.bar, arguments.address)));
-                    break;	
+                    break;
                 default:
                     throw std::invalid_argument("Unknown interface\n\n");
             }
         }
         cout << endl << endl;
-        
-#if 1       
+
+#if 1
         if(!programmer->checkFirmwareFile(arguments.firmware_file_path))
         {
             throw std::runtime_error("Incorrect firmware file\n");
@@ -404,6 +404,6 @@ int main (int argc, char *argv[])
         std::cerr << "An unexpected error has occured" << std::endl;
         return 1;
     }
-	
+
     return 0;
 }
