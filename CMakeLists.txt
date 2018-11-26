@@ -21,7 +21,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC -Wextra -Wshadow -pedantic -
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 --coverage")
 
 include(cmake/add_dependency.cmake)
-add_dependency(mtca4u-deviceaccess 0.33 REQUIRED)
+add_dependency(ChimeraTK-DeviceAccess 1.00 REQUIRED)
 add_dependency(Boost 1.46 program_options REQUIRED)
 
 #Add Curses dependency
@@ -40,8 +40,8 @@ include_directories(${PROJECT_BINARY_DIR}/include)
 set(EXEC_NAME mtca4u_fw_programmer)
 add_executable(${EXEC_NAME} ${app_sources} )
 set_target_properties(${EXEC_NAME} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS}")
-set_target_properties(${EXEC_NAME} PROPERTIES LINK_FLAGS "${mtca4u-deviceaccess_LINK_FLAGS} ${Boost_LINK_FLAGS} ${CURSES_LINK_FLAGS}")
-target_link_libraries(${EXEC_NAME} ${mtca4u-deviceaccess_LIBRARIES} ${Boost_LIBRARIES} ${CURSES_LIBRARIES})
+set_target_properties(${EXEC_NAME} PROPERTIES LINK_FLAGS "${ChimeraTK-DeviceAccess_LINK_FLAGS} ${Boost_LINK_FLAGS} ${CURSES_LINK_FLAGS}")
+target_link_libraries(${EXEC_NAME} ${ChimeraTK-DeviceAccess_LIBRARIES} ${Boost_LIBRARIES} ${CURSES_LIBRARIES})
 
 #change the install prefix to the source directory in case the user has not specified a destination 
 #i. e. CMAKE_INSTALL_PREFIX is not set manually
