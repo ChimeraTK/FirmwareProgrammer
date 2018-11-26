@@ -115,9 +115,9 @@ struct arguments_t{
 void usage (const char *progname) 
 {
     std::cout << "Usage:" << std::endl;
-    std::cout << "1) Direct: " << progname << "-d [device] [actions] -i [interface] -f [firmware file] -a [address]b[bar]" << std::endl;
-    std::cout << "2) MAP: " << progname << "-d [device] [actions] -i [interface] -f [firmware file] -M [map_file] -R[boot_area_name]" << std::endl;
-    std::cout << "3) DMAP: " << progname << "-d [device] [actions] -i [interface] -f [firmware file] -D [dmap_file] -R[boot_area_name]" << std::endl;
+    std::cout << "1) Direct: " << progname << " -d [device] [actions] -i [interface] -f [firmware file] -a [address]b[bar]" << std::endl;
+    std::cout << "2) MAP: " << progname << " -d [device] [actions] -i [interface] -f [firmware file] -M [map_file] -R[boot_area_name]" << std::endl;
+    std::cout << "3) DMAP: " << progname << " -d [device] [actions] -i [interface] -f [firmware file] -D [dmap_file] -R[boot_area_name]" << std::endl;
 }
 
 arguments_t parse_arguments(int argc, char *argv[])
