@@ -59,10 +59,9 @@
 */
 #define MAX_LEN 7000
 
-typedef struct var_len_byte
-{
-    short len;   /* number of chars in this value */
-    unsigned char val[MAX_LEN+1];  /* bytes of data */
+typedef struct var_len_byte {
+  short len;                      /* number of chars in this value */
+  unsigned char val[MAX_LEN + 1]; /* bytes of data */
 } lenVal;
 
 /* return the long representation of a lenVal */
@@ -85,4 +84,3 @@ short RetBit(lenVal *lv, int byte, int bit);
 void SetBit(lenVal *lv, int byte, int bit, short val);
 
 #endif
-

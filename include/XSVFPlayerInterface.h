@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   XSVFPlayerInterface.h
  * Author: pperek
  *
@@ -6,26 +6,20 @@
  */
 
 #ifndef XSVFPLAYERINTERFACE_H
-#define	XSVFPLAYERINTERFACE_H
+#define XSVFPLAYERINTERFACE_H
 
 /* these constants are used to send the appropriate ports to setPort */
-enum jtag_port_t
-{
-    TCK,
-    TMS,
-    TDI
-};
+enum jtag_port_t { TCK, TMS, TDI };
 
 class XSVFPlayerInterface {
 public:
-    virtual ~XSVFPlayerInterface(){};
-    virtual void setPort(jtag_port_t p, short val) = 0;
-    virtual unsigned char readTDOBit() = 0;
-    virtual void pulseClock() = 0;
-    virtual void waitTime(long microsec) = 0;
-private:
+  virtual ~XSVFPlayerInterface(){};
+  virtual void setPort(jtag_port_t p, short val) = 0;
+  virtual unsigned char readTDOBit() = 0;
+  virtual void pulseClock() = 0;
+  virtual void waitTime(long microsec) = 0;
 
+private:
 };
 
-#endif	/* XSVFPLAYERINTERFACE_H */
-
+#endif /* XSVFPLAYERINTERFACE_H */
