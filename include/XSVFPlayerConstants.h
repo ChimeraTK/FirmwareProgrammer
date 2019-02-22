@@ -15,10 +15,10 @@
 ============================================================================*/
 //#define DEBUG_MODE
 #ifdef DEBUG_MODE
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#  include <stdio.h>
+#  include <stdlib.h>
+#  include <string.h>
+#  include <time.h>
 #endif /* DEBUG_MODE */
 
 /*============================================================================
@@ -34,13 +34,13 @@
  *               0 for an unspecified failure.)
  *****************************************************************************/
 #ifndef XSVF_SUPPORT_ERRORCODES
-#define XSVF_SUPPORT_ERRORCODES 1
+#  define XSVF_SUPPORT_ERRORCODES 1
 #endif
 
 #ifdef XSVF_SUPPORT_ERRORCODES
-#define XSVF_ERRORCODE(errorCode) errorCode
+#  define XSVF_ERRORCODE(errorCode) errorCode
 #else /* Use legacy error code */
-#define XSVF_ERRORCODE(errorCode) ((errorCode == XSVF_ERROR_NONE) ? 1 : 0)
+#  define XSVF_ERRORCODE(errorCode) ((errorCode == XSVF_ERROR_NONE) ? 1 : 0)
 #endif /* XSVF_SUPPORT_ERRORCODES */
 
 /*****************************************************************************
@@ -49,47 +49,42 @@
  *               debugging.
  *****************************************************************************/
 #ifndef XSVF_MAIN
-#ifdef DEBUG_MODE
-#define XSVF_MAIN 1
-#endif /* DEBUG_MODE */
-#endif /* XSVF_MAIN */
+#  ifdef DEBUG_MODE
+#    define XSVF_MAIN 1
+#  endif /* DEBUG_MODE */
+#endif   /* XSVF_MAIN */
 
 /*============================================================================
 * DEBUG_MODE #define
 ============================================================================*/
 
 #ifdef DEBUG_MODE
-#define XSVFDBG_PRINTF(iDebugLevel, pzFormat)                                  \
-  {                                                                            \
-    if (xsvf_iDebugLevel >= iDebugLevel)                                       \
-      printf(pzFormat);                                                        \
-  }
-#define XSVFDBG_PRINTF1(iDebugLevel, pzFormat, arg1)                           \
-  {                                                                            \
-    if (xsvf_iDebugLevel >= iDebugLevel)                                       \
-      printf(pzFormat, arg1);                                                  \
-  }
-#define XSVFDBG_PRINTF2(iDebugLevel, pzFormat, arg1, arg2)                     \
-  {                                                                            \
-    if (xsvf_iDebugLevel >= iDebugLevel)                                       \
-      printf(pzFormat, arg1, arg2);                                            \
-  }
-#define XSVFDBG_PRINTF3(iDebugLevel, pzFormat, arg1, arg2, arg3)               \
-  {                                                                            \
-    if (xsvf_iDebugLevel >= iDebugLevel)                                       \
-      printf(pzFormat, arg1, arg2, arg3);                                      \
-  }
-#define XSVFDBG_PRINTLENVAL(iDebugLevel, plenVal)                              \
-  {                                                                            \
-    if (xsvf_iDebugLevel >= iDebugLevel)                                       \
-      xsvfPrintLenVal(plenVal);                                                \
-  }
+#  define XSVFDBG_PRINTF(iDebugLevel, pzFormat)                                                                        \
+    {                                                                                                                  \
+      if(xsvf_iDebugLevel >= iDebugLevel) printf(pzFormat);                                                            \
+    }
+#  define XSVFDBG_PRINTF1(iDebugLevel, pzFormat, arg1)                                                                 \
+    {                                                                                                                  \
+      if(xsvf_iDebugLevel >= iDebugLevel) printf(pzFormat, arg1);                                                      \
+    }
+#  define XSVFDBG_PRINTF2(iDebugLevel, pzFormat, arg1, arg2)                                                           \
+    {                                                                                                                  \
+      if(xsvf_iDebugLevel >= iDebugLevel) printf(pzFormat, arg1, arg2);                                                \
+    }
+#  define XSVFDBG_PRINTF3(iDebugLevel, pzFormat, arg1, arg2, arg3)                                                     \
+    {                                                                                                                  \
+      if(xsvf_iDebugLevel >= iDebugLevel) printf(pzFormat, arg1, arg2, arg3);                                          \
+    }
+#  define XSVFDBG_PRINTLENVAL(iDebugLevel, plenVal)                                                                    \
+    {                                                                                                                  \
+      if(xsvf_iDebugLevel >= iDebugLevel) xsvfPrintLenVal(plenVal);                                                    \
+    }
 #else /* !DEBUG_MODE */
-#define XSVFDBG_PRINTF(iDebugLevel, pzFormat)
-#define XSVFDBG_PRINTF1(iDebugLevel, pzFormat, arg1)
-#define XSVFDBG_PRINTF2(iDebugLevel, pzFormat, arg1, arg2)
-#define XSVFDBG_PRINTF3(iDebugLevel, pzFormat, arg1, arg2, arg3)
-#define XSVFDBG_PRINTLENVAL(iDebugLevel, plenVal)
+#  define XSVFDBG_PRINTF(iDebugLevel, pzFormat)
+#  define XSVFDBG_PRINTF1(iDebugLevel, pzFormat, arg1)
+#  define XSVFDBG_PRINTF2(iDebugLevel, pzFormat, arg1, arg2)
+#  define XSVFDBG_PRINTF3(iDebugLevel, pzFormat, arg1, arg2, arg3)
+#  define XSVFDBG_PRINTLENVAL(iDebugLevel, plenVal)
 #endif /* DEBUG_MODE */
 
 /*============================================================================
@@ -204,7 +199,7 @@
  *               Corresponding, uncompressed XSVF may be larger.
  *****************************************************************************/
 #ifndef XSVF_SUPPORT_COMPRESSION
-#define XSVF_SUPPORT_COMPRESSION 1
+#  define XSVF_SUPPORT_COMPRESSION 1
 #endif
 
 typedef struct tagSXsvfInfo {

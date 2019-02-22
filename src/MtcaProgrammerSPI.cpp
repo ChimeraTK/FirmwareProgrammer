@@ -31,8 +31,7 @@ const std::map<uint64_t, memory_info_t> MtcaProgrammerSPI::known_proms = {
 /*************************************************************************************/
 
 const uint8_t MtcaProgrammerSPI::bit_pattern[14] = {
-    0x00, 0x09, 0x0F, 0xF0, 0x0F, 0xF0, 0x0F,
-    0xF0, 0x0F, 0xF0, 0x00, 0x00, 0x01, 0x61};
+    0x00, 0x09, 0x0F, 0xF0, 0x0F, 0xF0, 0x0F, 0xF0, 0x0F, 0xF0, 0x00, 0x00, 0x01, 0x61};
 
 const std::map<std::string, std::pair<uint32_t, uint32_t>> commands = {
     // Name              24b     32b
@@ -41,24 +40,20 @@ const std::map<std::string, std::pair<uint32_t, uint32_t>> commands = {
     {"WRITE_DISABLE", {0x04, 0x04}},
 };
 
-inline uint32_t getCommand(std::string command_name,
-                           addressing_mode_t addr_mode) {
+inline uint32_t getCommand(std::string command_name, addressing_mode_t addr_mode) {
   std::pair<uint32_t, uint32_t> value = commands.at(command_name);
-  if (addr_mode == PROM_ADDR_24B)
+  if(addr_mode == PROM_ADDR_24B)
     return value.first;
   else
     return value.second;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-MtcaProgrammerSPI::MtcaProgrammerSPI(const ProgAccessRaw &args)
-    : MtcaProgrammerBase(args) {}
+MtcaProgrammerSPI::MtcaProgrammerSPI(const ProgAccessRaw& args) : MtcaProgrammerBase(args) {}
 
-MtcaProgrammerSPI::MtcaProgrammerSPI(const ProgAccessMap &args)
-    : MtcaProgrammerBase(args) {}
+MtcaProgrammerSPI::MtcaProgrammerSPI(const ProgAccessMap& args) : MtcaProgrammerBase(args) {}
 
-MtcaProgrammerSPI::MtcaProgrammerSPI(const ProgAccessDmap &args)
-    : MtcaProgrammerBase(args) {}
+MtcaProgrammerSPI::MtcaProgrammerSPI(const ProgAccessDmap& args) : MtcaProgrammerBase(args) {}
 
 MtcaProgrammerSPI::~MtcaProgrammerSPI() {}
 
@@ -66,37 +61,35 @@ MtcaProgrammerSPI::~MtcaProgrammerSPI() {}
 //  PUBLIC                                                                   //
 ///////////////////////////////////////////////////////////////////////////////
 bool MtcaProgrammerSPI::checkFirmwareFile(std::string firmwareFile) {
-  FILE *input_file;
+  FILE* input_file;
   unsigned char buffer[16];
   bool ret = true;
   bool bit_file = true;
 
   input_file = fopen(firmwareFile.c_str(), "r");
-  if (input_file == NULL) {
-    throw std::invalid_argument(
-        "Cannot open bit file. Maybe the file does not exist");
-  } else {
+  if(input_file == NULL) {
+    throw std::invalid_argument("Cannot open bit file. Maybe the file does not exist");
+  }
+  else {
     // Check if it is a 'bit' file
     size_t bytes_read = fread(buffer, 1, 14, input_file);
-    if (bytes_read != 14) {
+    if(bytes_read != 14) {
       fclose(input_file);
-      throw std::runtime_error(
-          "Cannot read verification pattern from bitstream file");
+      throw std::runtime_error("Cannot read verification pattern from bitstream file");
     }
 
-    for (int i = 0; i < 14; i++) {
-      if (buffer[i] != bit_pattern[i]) {
+    for(int i = 0; i < 14; i++) {
+      if(buffer[i] != bit_pattern[i]) {
         bit_file = false; // Incorrect bit file
         break;
       }
     }
   }
 
-  if (!bit_file) {
+  if(!bit_file) {
     // Check if it is a 'bin' file
     long int offset = findDataOffset(input_file);
-    if (offset != 0)
-      ret = false;
+    if(offset != 0) ret = false;
   }
 
   fclose(input_file);
@@ -109,8 +102,7 @@ void MtcaProgrammerSPI::erase() {
   reg_spi_divider.write();
 
   uint64_t memID = getMemoryId();
-  if (!checkMemoryId(memID))
-    throw std::runtime_error("Unknown, not present or busy SPI prom");
+  if(!checkMemoryId(memID)) throw std::runtime_error("Unknown, not present or busy SPI prom");
 
   memoryWriteEnable();
   memoryBulkErase();
@@ -121,14 +113,12 @@ void MtcaProgrammerSPI::program(std::string firmwareFile) {
   reg_spi_divider.write();
 
   uint64_t memID = getMemoryId();
-  if (!checkMemoryId(memID))
-    throw std::runtime_error("Unknown, not present or busy SPI prom");
+  if(!checkMemoryId(memID)) throw std::runtime_error("Unknown, not present or busy SPI prom");
 
   quad_mode_t quad_mode = known_proms.at(memID).quad_mode;
 
   memoryWriteEnable();
-  if (quad_mode == QUAD_MODE_EN)
-    enableQuadMode();
+  if(quad_mode == QUAD_MODE_EN) enableQuadMode();
   programMemory(firmwareFile);
 }
 
@@ -137,8 +127,7 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile) {
   reg_spi_divider.write();
 
   uint64_t memID = getMemoryId();
-  if (!checkMemoryId(memID))
-    throw std::runtime_error("Unknown, not present or busy SPI prom");
+  if(!checkMemoryId(memID)) throw std::runtime_error("Unknown, not present or busy SPI prom");
 
   unsigned char buffer[1024];
   uint32_t data;
@@ -146,16 +135,14 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile) {
   unsigned int addr = 0;
   unsigned int file_size;
   long int offset = 0;
-  FILE *f = fopen(firmwareFile.c_str(), "rb");
+  FILE* f = fopen(firmwareFile.c_str(), "rb");
 
   printf("\nVerification\n");
 
-  if (!f)
-    throw std::invalid_argument("Cannot open firmware file");
+  if(!f) throw std::invalid_argument("Cannot open firmware file");
 
   offset = findDataOffset(f);
-  if (offset == -1)
-    throw std::runtime_error("Cannot find start sequence in the file");
+  if(offset == -1) throw std::runtime_error("Cannot find start sequence in the file");
 
   fseek(f, 0, SEEK_END);
   file_size = ftell(f);
@@ -166,9 +153,9 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile) {
 
   do {
     bread = fread(buffer, 1, 1024, f);
-    if (bread == 0) {
+    if(bread == 0) {
       printf("\nverified %d bytes\n\n", addr);
-      if (ferror(f)) {
+      if(ferror(f)) {
         fclose(f);
         throw std::runtime_error("Error reading firmware file");
       }
@@ -192,18 +179,17 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile) {
     waitForSpi();
 
     reg_area_read.read();
-    for (unsigned int i = 0; i < bread; i++) {
+    for(unsigned int i = 0; i < bread; i++) {
       data = reg_area_read[i];
-      if (buffer[i] != (data & 0xff)) {
-        fprintf(stderr,
-                "\nVerify error at address %u: read 0x%02x instead of 0x%02x\n",
-                addr + i, (data & 0xff), buffer[i]);
+      if(buffer[i] != (data & 0xff)) {
+        fprintf(stderr, "\nVerify error at address %u: read 0x%02x instead of 0x%02x\n", addr + i, (data & 0xff),
+            buffer[i]);
         return false;
       }
     }
     addr = addr + bread;
     ProgressBar(file_size, addr);
-  } while (1);
+  } while(1);
 }
 
 void MtcaProgrammerSPI::rebootFPGA() {
@@ -218,7 +204,7 @@ void MtcaProgrammerSPI::rebootFPGA() {
 uint64_t MtcaProgrammerSPI::getMemoryId() {
   uint64_t mem_id = 0;
 
-  for (int i = 0; i < 2; i++) // first read returns garbage
+  for(int i = 0; i < 2; i++) // first read returns garbage
   {
     reg_control = 0; // clear reg control status before write to buffer
     reg_control.write();
@@ -238,7 +224,7 @@ uint64_t MtcaProgrammerSPI::getMemoryId() {
 
   // read 5 bytes
   reg_area_read.read();
-  for (int i = 0; i < 5; i++) {
+  for(int i = 0; i < 5; i++) {
     uint32_t id_val;
     id_val = reg_area_read[i];
     mem_id |= ((uint64_t)id_val & 0xFF) << (i * 8);
@@ -253,8 +239,7 @@ uint64_t MtcaProgrammerSPI::getMemoryId() {
    Please note that it may return failure if the PROM is busy e.g. erasing the
    memory block. */
 int MtcaProgrammerSPI::checkMemoryId(uint64_t memory_id) {
-  if (known_proms.find(memory_id) == known_proms.end())
-    return 0;
+  if(known_proms.find(memory_id) == known_proms.end()) return 0;
 
   return 1;
 }
@@ -269,24 +254,22 @@ void MtcaProgrammerSPI::waitForSpi() {
     data = reg_control;
     // printf("waitForSpi() - data = 0x%X\n", data);
     // usleep(1);
-    if (i++ == 1000000)
-      throw std::runtime_error(
-          "Timeout waiting for SPI response\n"
-          "It can be a problem with communication interface (PCIe/Eth) or "
-          "programmer module is not available in FPGA");
-  } while ((data & (SPI_PROG | SPI_START)) != (SPI_PROG));
+    if(i++ == 1000000)
+      throw std::runtime_error("Timeout waiting for SPI response\n"
+                               "It can be a problem with communication interface (PCIe/Eth) or "
+                               "programmer module is not available in FPGA");
+  } while((data & (SPI_PROG | SPI_START)) != (SPI_PROG));
 }
 
-uint32_t MtcaProgrammerSPI::writeAddress(uint32_t address,
-                                         addressing_mode_t addr_mode) {
+uint32_t MtcaProgrammerSPI::writeAddress(uint32_t address, addressing_mode_t addr_mode) {
   uint32_t addr_len = 0;
 
-  if (addr_mode == PROM_ADDR_24B)
+  if(addr_mode == PROM_ADDR_24B)
     addr_len = 3;
-  else if (addr_mode == PROM_ADDR_32B)
+  else if(addr_mode == PROM_ADDR_32B)
     addr_len = 4;
 
-  for (uint i = addr_len; i > 0; i--) {
+  for(uint i = addr_len; i > 0; i--) {
     reg_area_write[i] = address & 0xFF;
     address = address >> 8;
   }
@@ -327,12 +310,12 @@ void MtcaProgrammerSPI::memoryBulkErase() {
 
   do {
     data = readStatus();
-    if (progress <= max_time) {
+    if(progress <= max_time) {
       ProgressBar(max_time, progress++);
       sleep(1);
     }
     /// printf("data = 0x%X\n", data);
-  } while (data & 1);
+  } while(data & 1);
   ProgressBar(max_time, max_time); // progress bar = 100%
   printf("\n");
 }
@@ -398,7 +381,7 @@ void MtcaProgrammerSPI::enableQuadMode() {
    program_mem and verify_mem functions Return int offset - number of bytes of
    header to ommit. Returns 0 if no header found.
     Returns -1 if no binary start sequence (0xAA995566) found. */
-long int MtcaProgrammerSPI::findDataOffset(FILE *file) {
+long int MtcaProgrammerSPI::findDataOffset(FILE* file) {
   unsigned char buffer[512];
   int offset = -1;
   const unsigned char c1 = 0xaa;
@@ -408,28 +391,25 @@ long int MtcaProgrammerSPI::findDataOffset(FILE *file) {
   const unsigned char c0 = 0xff;
   size_t bytes_read;
 
-  if (!file)
-    return -1;
+  if(!file) return -1;
 
   fseek(file, 0, SEEK_SET);
   bytes_read = fread(buffer, 1, 512, file);
-  if (bytes_read != 512) {
+  if(bytes_read != 512) {
     fclose(file);
     throw std::runtime_error("Cannot read header data from bitstream file");
   }
   fseek(file, 0, SEEK_SET);
 
   /* ok if header shorter than 512 bytes  */
-  for (int i = 0; i < 512; i++) {
-    if ((buffer[i] == c1) && (buffer[i + 1] == c2) && (buffer[i + 2] == c3) &&
-        (buffer[i + 3] == c4)) {
-      for (int j = 1; j < i + 1; j++) {
-        if (buffer[i - j] != c0) {
+  for(int i = 0; i < 512; i++) {
+    if((buffer[i] == c1) && (buffer[i + 1] == c2) && (buffer[i + 2] == c3) && (buffer[i + 3] == c4)) {
+      for(int j = 1; j < i + 1; j++) {
+        if(buffer[i - j] != c0) {
           i = i - (j - (j % 16));
           break;
         }
-        if (j == i)
-          i = i - (j - (j % 16));
+        if(j == i) i = i - (j - (j % 16));
       }
 
       offset = i;
@@ -446,16 +426,14 @@ void MtcaProgrammerSPI::programMemory(std::string firmwareFile) {
   unsigned int addr = 0;
   unsigned int file_size;
   long int offset = 0;
-  FILE *f = fopen(firmwareFile.c_str(), "rb");
+  FILE* f = fopen(firmwareFile.c_str(), "rb");
 
   printf("\nProgramming\n");
 
-  if (!f)
-    throw std::invalid_argument("Cannot open firmware file");
+  if(!f) throw std::invalid_argument("Cannot open firmware file");
 
   offset = findDataOffset(f);
-  if (offset == -1)
-    throw std::runtime_error("Cannot find start sequence in the file");
+  if(offset == -1) throw std::runtime_error("Cannot find start sequence in the file");
 
   fseek(f, 0, SEEK_END);
   file_size = ftell(f);
@@ -466,10 +444,9 @@ void MtcaProgrammerSPI::programMemory(std::string firmwareFile) {
 
   do {
     bread = fread(buffer, 1, 256, f);
-    if (bread == 0) {
+    if(bread == 0) {
       printf("\nprogrammed %d bytes\n", addr);
-      if (ferror(f))
-        throw std::runtime_error("Error reading firmware file");
+      if(ferror(f)) throw std::runtime_error("Error reading firmware file");
       fclose(f);
       return;
     }
@@ -478,19 +455,19 @@ void MtcaProgrammerSPI::programMemory(std::string firmwareFile) {
     programMemoryPage(addr, bread, buffer, addr_mode);
     addr = addr + bread;
     ProgressBar(file_size, addr);
-  } while (1);
+  } while(1);
 }
 
 void MtcaProgrammerSPI::programMemoryPage(unsigned int address,
-                                          unsigned int size,
-                                          unsigned char *buffer,
-                                          addressing_mode_t addr_mode) {
+    unsigned int size,
+    unsigned char* buffer,
+    addressing_mode_t addr_mode) {
   unsigned int data;
 
   //    printf("Programming flash at address %x\n",address);
   reg_area_write[0] = getCommand("PAGE_PROGRAM", addr_mode);
   uint32_t reg_offset = writeAddress(address, addr_mode);
-  for (unsigned int i = 0; i < size; i++) {
+  for(unsigned int i = 0; i < size; i++) {
     reg_area_write[(reg_offset + i)] = buffer[i];
     // printf("Data: 0x%x %d\n", buffer[i], i );
   }
@@ -506,5 +483,5 @@ void MtcaProgrammerSPI::programMemoryPage(unsigned int address,
   waitForSpi();
   do {
     data = readStatus();
-  } while (data & 1);
+  } while(data & 1);
 }

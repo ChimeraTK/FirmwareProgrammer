@@ -11,12 +11,12 @@
  * Parameters:   plvValue    - ptr to lenval.
  * Returns:      long        - the extracted value.
  *****************************************************************************/
-long value(lenVal *plvValue) {
+long value(lenVal* plvValue) {
   long lValue; /* result to hold the accumulated result */
   short sIndex;
 
   lValue = 0;
-  for (sIndex = 0; sIndex < plvValue->len; ++sIndex) {
+  for(sIndex = 0; sIndex < plvValue->len; ++sIndex) {
     lValue <<= 8;                    /* shift the accumulated result */
     lValue |= plvValue->val[sIndex]; /* get the last byte first */
   }
@@ -32,7 +32,7 @@ long value(lenVal *plvValue) {
  *               lValue      - the value to set.
  * Returns:      void.
  *****************************************************************************/
-void initLenVal(lenVal *plv, long lValue) {
+void initLenVal(lenVal* plv, long lValue) {
   plv->len = 1;
   plv->val[0] = (unsigned char)lValue;
 }
@@ -45,8 +45,7 @@ void initLenVal(lenVal *plv, long lValue) {
  *               plvTdoMask      - optional ptr to mask (=0 if no mask).
  * Returns:      short   - 0 = mismatch; 1 = equal.
  *****************************************************************************/
-short EqualLenVal(lenVal *plvTdoExpected, lenVal *plvTdoCaptured,
-                  lenVal *plvTdoMask) {
+short EqualLenVal(lenVal* plvTdoExpected, lenVal* plvTdoCaptured, lenVal* plvTdoMask) {
   short sEqual;
   short sIndex;
   unsigned char ucByteVal1;
@@ -56,15 +55,15 @@ short EqualLenVal(lenVal *plvTdoExpected, lenVal *plvTdoCaptured,
   sEqual = 1;
   sIndex = plvTdoExpected->len;
 
-  while (sEqual && sIndex--) {
+  while(sEqual && sIndex--) {
     ucByteVal1 = plvTdoExpected->val[sIndex];
     ucByteVal2 = plvTdoCaptured->val[sIndex];
-    if (plvTdoMask) {
+    if(plvTdoMask) {
       ucByteMask = plvTdoMask->val[sIndex];
       ucByteVal1 &= ucByteMask;
       ucByteVal2 &= ucByteMask;
     }
-    if (ucByteVal1 != ucByteVal2) {
+    if(ucByteVal1 != ucByteVal2) {
       sEqual = 0;
     }
   }
@@ -80,7 +79,7 @@ short EqualLenVal(lenVal *plvTdoExpected, lenVal *plvTdoCaptured,
  *               iBit    - the bit number (0=msb)
  * Returns:      short   - the bit value.
  *****************************************************************************/
-short RetBit(lenVal *plv, int iByte, int iBit) {
+short RetBit(lenVal* plv, int iByte, int iBit) {
   /* assert( ( iByte >= 0 ) && ( iByte < plv->len ) ); */
   /* assert( ( iBit >= 0 ) && ( iBit < 8 ) ); */
   return ((short)((plv->val[iByte] >> (7 - iBit)) & 0x1));
@@ -96,14 +95,14 @@ short RetBit(lenVal *plv, int iByte, int iBit) {
  *               sVal    - the bit value to set.
  * Returns:      void.
  *****************************************************************************/
-void SetBit(lenVal *plv, int iByte, int iBit, short sVal) {
+void SetBit(lenVal* plv, int iByte, int iBit, short sVal) {
   unsigned char ucByteVal;
   unsigned char ucBitMask;
 
   ucBitMask = (unsigned char)(1 << (7 - iBit));
   ucByteVal = (unsigned char)(plv->val[iByte] & (~ucBitMask));
 
-  if (sVal) {
+  if(sVal) {
     ucByteVal |= ucBitMask;
   }
   plv->val[iByte] = ucByteVal;
@@ -118,7 +117,7 @@ void SetBit(lenVal *plv, int iByte, int iBit, short sVal) {
  *               plvVal2     - ptr of addendum.
  * Returns:      void.
  *****************************************************************************/
-void addVal(lenVal *plvResVal, lenVal *plvVal1, lenVal *plvVal2) {
+void addVal(lenVal* plvResVal, lenVal* plvVal1, lenVal* plvVal2) {
   unsigned char ucCarry;
   unsigned short usSum;
   unsigned short usVal1;
@@ -130,7 +129,7 @@ void addVal(lenVal *plvResVal, lenVal *plvVal1, lenVal *plvVal2) {
   /* start at least significant bit and add bytes    */
   ucCarry = 0;
   sIndex = plvVal1->len;
-  while (sIndex--) {
+  while(sIndex--) {
     usVal1 = plvVal1->val[sIndex]; /* i'th byte of val1 */
     usVal2 = plvVal2->val[sIndex]; /* i'th byte of val2 */
 

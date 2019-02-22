@@ -13,9 +13,8 @@
 #include "registers.h"
 
 struct ProgAccessRaw {
-  ProgAccessRaw(std::string deviceName, uint8_t bar = PROG_DEFAULT_BAR,
-                uint32_t address = PROG_DEFAULT_ADDRESS)
-      : mDeviceName(deviceName), mBar(bar), mAddress(address){};
+  ProgAccessRaw(std::string deviceName, uint8_t bar = PROG_DEFAULT_BAR, uint32_t address = PROG_DEFAULT_ADDRESS)
+  : mDeviceName(deviceName), mBar(bar), mAddress(address){};
 
   std::string mDeviceName;
   uint8_t mBar;
@@ -23,10 +22,8 @@ struct ProgAccessRaw {
 };
 
 struct ProgAccessMap {
-  ProgAccessMap(std::string deviceName, std::string mapFilePath,
-                std::string moduleName = "**DEFAULT**")
-      : mDeviceName(deviceName), mMapFilePath(mapFilePath),
-        mModuleName(moduleName){};
+  ProgAccessMap(std::string deviceName, std::string mapFilePath, std::string moduleName = "**DEFAULT**")
+  : mDeviceName(deviceName), mMapFilePath(mapFilePath), mModuleName(moduleName){};
 
   std::string mDeviceName;
   std::string mMapFilePath;
@@ -34,10 +31,8 @@ struct ProgAccessMap {
 };
 
 struct ProgAccessDmap {
-  ProgAccessDmap(std::string deviceName, std::string dmapFilePath,
-                 std::string moduleName = "**DEFAULT**")
-      : mDeviceName(deviceName), mDmapFilePath(dmapFilePath),
-        mModuleName(moduleName){};
+  ProgAccessDmap(std::string deviceName, std::string dmapFilePath, std::string moduleName = "**DEFAULT**")
+  : mDeviceName(deviceName), mDmapFilePath(dmapFilePath), mModuleName(moduleName){};
 
   std::string mDeviceName;
   std::string mDmapFilePath;
@@ -45,10 +40,10 @@ struct ProgAccessDmap {
 };
 
 class MtcaProgrammerBase {
-public:
-  MtcaProgrammerBase(const ProgAccessRaw &args);
-  MtcaProgrammerBase(const ProgAccessMap &args);
-  MtcaProgrammerBase(const ProgAccessDmap &args);
+ public:
+  MtcaProgrammerBase(const ProgAccessRaw& args);
+  MtcaProgrammerBase(const ProgAccessMap& args);
+  MtcaProgrammerBase(const ProgAccessDmap& args);
 
   virtual ~MtcaProgrammerBase();
 
@@ -58,7 +53,7 @@ public:
   virtual bool verify(std::string firmwareFile) = 0;
   virtual void rebootFPGA() = 0;
 
-protected:
+ protected:
   ChimeraTK::Device mDevice;
 
   ChimeraTK::OneDRegisterAccessor<int32_t> reg_area_write;
@@ -73,7 +68,7 @@ protected:
   ChimeraTK::ScalarRegisterAccessor<int32_t> reg_tdo;
   ChimeraTK::ScalarRegisterAccessor<int32_t> reg_rev_switch;
 
-private:
+ private:
   void initRegisterAccessors(std::string registerPathName);
 };
 

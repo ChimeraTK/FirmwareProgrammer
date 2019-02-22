@@ -13,10 +13,10 @@
 #include "XSVFPlayerInterface.h"
 
 class MtcaProgrammerJTAG : public MtcaProgrammerBase, XSVFPlayerInterface {
-public:
-  MtcaProgrammerJTAG(const ProgAccessRaw &args);
-  MtcaProgrammerJTAG(const ProgAccessMap &args);
-  MtcaProgrammerJTAG(const ProgAccessDmap &args);
+ public:
+  MtcaProgrammerJTAG(const ProgAccessRaw& args);
+  MtcaProgrammerJTAG(const ProgAccessMap& args);
+  MtcaProgrammerJTAG(const ProgAccessDmap& args);
   virtual ~MtcaProgrammerJTAG();
 
   bool checkFirmwareFile(std::string firmwareFile);
@@ -31,7 +31,7 @@ public:
   void pulseClock();
   void waitTime(long microsec);
 
-private:
+ private:
   static const uint8_t xsvf_pattern[16];
 };
 

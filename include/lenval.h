@@ -65,22 +65,22 @@ typedef struct var_len_byte {
 } lenVal;
 
 /* return the long representation of a lenVal */
-long value(lenVal *x);
+long value(lenVal* x);
 
 /* set lenVal equal to value */
-void initLenVal(lenVal *x, long value);
+void initLenVal(lenVal* x, long value);
 
 /* check if expected equals actual (taking the mask into account) */
-short EqualLenVal(lenVal *expected, lenVal *actual, lenVal *mask);
+short EqualLenVal(lenVal* expected, lenVal* actual, lenVal* mask);
 
 /* add val1+val2 and put the result in resVal */
-void addVal(lenVal *resVal, lenVal *val1, lenVal *val2);
+void addVal(lenVal* resVal, lenVal* val1, lenVal* val2);
 
 /* return the (byte, bit) of lv (reading from left to right) */
-short RetBit(lenVal *lv, int byte, int bit);
+short RetBit(lenVal* lv, int byte, int bit);
 
 /* set the (byte, bit) of lv equal to val (e.g. SetBit("00000000",byte, 1)
    equals "01000000" */
-void SetBit(lenVal *lv, int byte, int bit, short val);
+void SetBit(lenVal* lv, int byte, int bit, short val);
 
 #endif
