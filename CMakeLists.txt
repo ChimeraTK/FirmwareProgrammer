@@ -11,14 +11,8 @@ include(${CMAKE_SOURCE_DIR}/cmake/set_version_numbers.cmake)
 ## Load custom modules, i.e. FindDOOCS.cmake
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
-if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "None")
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING
-    "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." 
-    FORCE)
-endif(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "None")
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC -Wextra -Wshadow -pedantic -Wuninitialized -Weffc++")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 --coverage")
+INCLUDE(${CMAKE_SOURCE_DIR}/cmake/set_default_build_to_release.cmake)
+INCLUDE(${CMAKE_SOURCE_DIR}/cmake/set_default_flags.cmake)
 
 include(cmake/add_dependency.cmake)
 add_dependency(ChimeraTK-DeviceAccess 1.00 REQUIRED)
