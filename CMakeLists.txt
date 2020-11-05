@@ -23,8 +23,10 @@ set(CURSES_USE_NCURSES TRUE)
 FIND_PACKAGE(Curses)
 include_directories(SYSTEM ${CURSES_INCLUDE_DIR})
 
+
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
-AUX_SOURCE_DIRECTORY(${CMAKE_SOURCE_DIR}/src app_sources)
+##AUX_SOURCE_DIRECTORY(${CMAKE_SOURCE_DIR}/src app_sources)
+FILE(GLOB app_sources "./src/[a-zA-Z0-9_]*.cpp")
 
 #put the version number into the version file and add the include directory in the build tree, where we put it
 configure_file(cmake/version.h.in

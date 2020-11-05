@@ -108,10 +108,14 @@ void MtcaProgrammerJTAG::setPort(jtag_port_t p, short val) {
 /* readTDOBit:  Implement to return the current value of the JTAG TDO signal.*/
 /* read the TDO bit from port */
 unsigned char MtcaProgrammerJTAG::readTDOBit() {
-  uint32_t data = 0;
+
+  // TDO checked on falling edge of CLK
+  // write TCK = 0 one more time for delay and to be sure TDO is ready
+  reg_tck = 0x0;
+  reg_tck.write();
+
   reg_tdo.read();
-  data = reg_tdo;
-  return ((unsigned char)(data & 0x1));
+  return ((unsigned char)(reg_tdo));
 }
 
 /* toggle tck LH.  No need to modify this code.  It is output via setPort. */
