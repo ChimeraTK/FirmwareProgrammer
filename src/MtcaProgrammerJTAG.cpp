@@ -110,9 +110,13 @@ void MtcaProgrammerJTAG::setPort(jtag_port_t p, short val) {
 unsigned char MtcaProgrammerJTAG::readTDOBit() {
 
   // TDO checked on falling edge of CLK
-  // write TCK = 0 one more time for delay and to be sure TDO is ready
   reg_tck = 0x0;
   reg_tck.write();
+  // make sure TCK is set low
+  while(1) {
+    reg_tck.read();
+    if (reg_tck == 0) break;
+  }
 
   reg_tdo.read();
   return ((unsigned char)(reg_tdo));
