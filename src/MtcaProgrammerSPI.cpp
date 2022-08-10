@@ -25,6 +25,7 @@
 const std::map<uint64_t, memory_info_t> MtcaProgrammerSPI::known_proms = {
     {0x0103182001, {PROM_ADDR_24B, QUAD_MODE_DIS}}, // old uTC versions
     {0x014d190201, {PROM_ADDR_32B, QUAD_MODE_EN}},  // TCK7
+    {0x004d190201, {PROM_ADDR_32B, QUAD_MODE_EN}},  // ZUP Spartan7
     {0x00001740EF, {PROM_ADDR_24B, QUAD_MODE_DIS}}, // SIS8300L
     {0x00001770EF, {PROM_ADDR_24B, QUAD_MODE_DIS}}, // SIS8300L2
     {0x20C21920C2, {PROM_ADDR_24B, QUAD_MODE_DIS}}, // SIS8300KU
