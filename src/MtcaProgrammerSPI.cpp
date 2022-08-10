@@ -92,7 +92,7 @@ bool MtcaProgrammerSPI::checkFirmwareFile(std::string firmwareFile) {
   if(!bit_file) {
     // Check if it is a 'bin' file
     long int offset = findDataOffset(input_file);
-    if(offset != 0) ret = false;
+    if(offset > 512 or offset < 0) ret = false;
   }
 
   fclose(input_file);
@@ -200,6 +200,7 @@ void MtcaProgrammerSPI::rebootFPGA() {
   reg_rev_switch = FPGA_REBOOT_WORD;
   reg_rev_switch.write();
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //  PRIVATE                                                                   //
@@ -382,8 +383,8 @@ void MtcaProgrammerSPI::enableQuadMode() {
 
 /** Searching for the end of bitstream header. Counting the offset for
    program_mem and verify_mem functions Return int offset - number of bytes of
-   header to ommit. Returns 0 if no header found.
-    Returns -1 if no binary start sequence (0xAA995566) found. */
+   header to ommit. Returns 0 if no header found or file is in bin format (no header).
+   Returns -1 if no binary start sequence (0xAA995566) found. */
 long int MtcaProgrammerSPI::findDataOffset(FILE* file) {
   unsigned char buffer[512];
   int offset = -1;
@@ -393,6 +394,7 @@ long int MtcaProgrammerSPI::findDataOffset(FILE* file) {
   const unsigned char c4 = 0x66;
   const unsigned char c0 = 0xff;
   size_t bytes_read;
+  bool bit_file = true;
 
   if(!file) return -1;
 
@@ -404,7 +406,15 @@ long int MtcaProgrammerSPI::findDataOffset(FILE* file) {
   }
   fseek(file, 0, SEEK_SET);
 
+  /*check if bit file*/
+  for(int i = 0; i < 14; i++) {
+    if(buffer[i] != bit_pattern[i]) {
+      bit_file = false; // Incorrect bit file
+      break;
+    }
+  }
   /* ok if header shorter than 512 bytes  */
+  /*find SYNC sequence*/
   for(int i = 0; i < 512; i++) {
     if((buffer[i] == c1) && (buffer[i + 1] == c2) && (buffer[i + 2] == c3) && (buffer[i + 3] == c4)) {
       for(int j = 1; j < i + 1; j++) {
@@ -414,12 +424,24 @@ long int MtcaProgrammerSPI::findDataOffset(FILE* file) {
         }
         if(j == i) i = i - (j - (j % 16));
       }
-
       offset = i;
       break;
     }
   }
-
+  if (offset > 0 and not bit_file) { // binary file take as is
+    offset = 0;
+  }
+  if (offset > 0 and bit_file) { // bit file, remove header
+    offset = offset - 16; // include 16bytes before SYNC WORD. Optional Bus Width Sync.
+    // include as well all NOOP DWORDS up to variable header: 0xFFFFFFFF
+    for (int i = (offset-1); i > 4; i-=4) {
+      if((buffer[i] == 0xFF) && (buffer[i - 1] == 0xFF) && (buffer[i - 2] == 0xFF) && (buffer[i - 3] == 0xFF)) {
+        offset = offset - 4;
+      } else {
+        break;
+      }
+    }
+  }
   return offset;
 }
 
