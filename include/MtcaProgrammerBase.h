@@ -51,6 +51,7 @@ class MtcaProgrammerBase {
   virtual void erase() = 0;
   virtual void program(std::string firmwareFile) = 0;
   virtual bool verify(std::string firmwareFile) = 0;
+  virtual bool dump(std::string firmwareFile, uint32_t imageSize) = 0;
   virtual void rebootFPGA() = 0;
 
  protected:

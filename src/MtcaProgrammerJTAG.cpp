@@ -72,6 +72,12 @@ bool MtcaProgrammerJTAG::verify(std::string) {
   return true;
 }
 
+/* not implemented */
+bool MtcaProgrammerJTAG::dump(std::string, uint32_t) {
+  printf("\nFirmware dump via JTAG is not implemented\n");
+  return false;
+}
+
 void MtcaProgrammerJTAG::rebootFPGA() {
   printf("FPGA rebooting...\n");
   reg_rev_switch = FPGA_REBOOT_WORD;

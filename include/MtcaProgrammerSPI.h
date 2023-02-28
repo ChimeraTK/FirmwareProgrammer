@@ -32,6 +32,7 @@ class MtcaProgrammerSPI : public MtcaProgrammerBase {
   void erase();
   void program(std::string firmwareFile);
   bool verify(std::string firmwareFile);
+  bool dump(std::string firmwareFile, uint32_t imageSize);
   void rebootFPGA();
 
  private:
