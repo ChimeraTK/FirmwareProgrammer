@@ -68,18 +68,20 @@ struct arguments_t {
   std::string device_name;
   bool device_name_raw;
   uint32_t address;
+  uint32_t flash_size;
   uint8_t bar;
   std::string dmap_file_path;
   std::string map_file_path;
   std::string map_area_name;
   bool action_programming;
   bool action_verification;
+  bool action_dump;
   bool action_reload;
 
   arguments_t()
   : interface(ProgrammingInterface(ProgrammingInterface::INTERFACE_NONE)), firmware_file_path(), device_name(),
-    device_name_raw(false), address(PROG_DEFAULT_ADDRESS), bar(PROG_DEFAULT_BAR), dmap_file_path(), map_file_path(),
-    map_area_name("**DEFAULT**"), action_programming(false), action_verification(false), action_reload(false) {}
+    device_name_raw(false), address(PROG_DEFAULT_ADDRESS), flash_size(0), bar(PROG_DEFAULT_BAR), dmap_file_path(), map_file_path(),
+    map_area_name("**DEFAULT**"), action_programming(false), action_verification(false), action_dump(false), action_reload(false) {}
 
   string toString() {
     ostringstream os;
@@ -125,10 +127,12 @@ arguments_t parse_arguments(int argc, char* argv[]) {
   // config file
   po::options_description config("Configuration");
   config.add_options()("program,p", po::bool_switch()->default_value(false), "erase and program memory")("verify,v",
-      po::bool_switch()->default_value(false), "verify memory")("reload,r", po::bool_switch()->default_value(false),
+      po::bool_switch()->default_value(false), "verify memory")("dump,m",
+      po::bool_switch()->default_value(false), "dump memory")("reload,r", po::bool_switch()->default_value(false),
       "reload FPGA")("interface,i", po::value<string>(), "memory interface (spi/jtag)")(
       "firmware_file,f", po::value<string>(), "FPGA firmware file")("device,d", po::value<string>(), "device name")(
       "address,a", po::value<string>(), "address and bar of boot area in FGPA - example: -a [address]b[bar]")(
+      "flash_size,s", po::value<string>(), "size of flash chip to dump, in bytes - example for a 256M (32MiB) chip: -s 33554432")(
       "dmap,D", po::value<string>(), "DMAP file path")("map,M", po::value<string>(), "MAP file path")(
       "boot_area,R", po::value<string>(), "boot area name in MAP file");
 
@@ -158,6 +162,7 @@ arguments_t parse_arguments(int argc, char* argv[]) {
 
   args.action_programming = vm["program"].as<bool>();
   args.action_verification = vm["verify"].as<bool>();
+  args.action_dump = vm["dump"].as<bool>();
   args.action_reload = vm["reload"].as<bool>();
 
   if(vm.count("device")) {
@@ -184,6 +189,8 @@ arguments_t parse_arguments(int argc, char* argv[]) {
   if(vm.count("map")) args.map_file_path = vm["map"].as<std::string>();
 
   if(vm.count("boot_area")) args.map_area_name = vm["boot_area"].as<std::string>();
+
+  if(vm.count("flash_size")) args.flash_size = std::stoi(vm["flash_size"].as<std::string>());
 
   if(vm.count("address")) {
     std::string address_input = vm["address"].as<std::string>();
@@ -221,8 +228,21 @@ arguments_t parse_arguments(int argc, char* argv[]) {
 }
 
 void verify_arguments(arguments_t arguments) {
-  if(!arguments.action_programming && !arguments.action_reload && !arguments.action_verification) {
+  if(!arguments.action_programming && !arguments.action_reload && !arguments.action_verification && !arguments.action_dump) {
     throw std::logic_error("Please specify action(s) to be executed");
+  }
+
+  if((arguments.action_programming || arguments.action_verification) && arguments.action_dump) {
+    throw std::logic_error("Cannot program/verify a new firmware and also dump the current firmware");
+  }
+
+  if(arguments.action_dump && arguments.flash_size == 0) {
+	  throw std::logic_error("Cannot dump a flash image without knowing the size of the chip.\n"
+			                 "Please specify the number of bytes to dump.\n");
+  }
+
+  if(arguments.flash_size && (arguments.flash_size % 1024)) {
+	  throw std::logic_error("The flash size must be a multiple of 1024.\n");
   }
 
   if(arguments.device_name.empty()) {
@@ -239,7 +259,7 @@ void verify_arguments(arguments_t arguments) {
     throw std::logic_error("Firmware file is missing.\n"
                            "Please specify the location of file with firmware.\n");
   }
-  else {
+  else if (arguments.action_programming || arguments.action_verification) {
     FILE* tmp_file = fopen(arguments.firmware_file_path.c_str(), "r");
     if(tmp_file == NULL)
       throw std::invalid_argument("Cannot open firmware file. Please check if file exists and you have "
@@ -338,12 +358,17 @@ int main(int argc, char* argv[]) {
     cout << endl << endl;
 
 #if 1
-    if(!programmer->checkFirmwareFile(arguments.firmware_file_path)) {
-      throw std::runtime_error("Incorrect firmware file\n");
+    if(arguments.action_programming || arguments.action_verification) {
+	  if (!programmer->checkFirmwareFile(arguments.firmware_file_path)) {
+        throw std::runtime_error("Incorrect firmware file\n");
+	  }
     }
     if(arguments.action_programming) {
       programmer->erase();
       programmer->program(arguments.firmware_file_path);
+    }
+    if(arguments.action_dump) {
+      if(programmer->dump(arguments.firmware_file_path, arguments.flash_size) == false) return 1;
     }
     if(arguments.action_verification) {
       if(programmer->verify(arguments.firmware_file_path) == false) return 1;

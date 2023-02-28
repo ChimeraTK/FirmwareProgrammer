@@ -195,6 +195,59 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile) {
   } while(1);
 }
 
+bool MtcaProgrammerSPI::dump(std::string firmwareFile, uint32_t imageSize) {
+  reg_spi_divider = 10;
+  reg_spi_divider.write();
+
+  uint64_t memID = getMemoryId();
+  if(!checkMemoryId(memID)) throw std::runtime_error("Unknown, not present or busy SPI prom");
+
+  uint8_t data;
+  unsigned int bwritten;
+  unsigned int addr = 0;
+  FILE* f;
+
+  uint64_t mem_id = getMemoryId();
+  addressing_mode_t addr_mode = known_proms.at(mem_id).addressing_mode;
+
+  printf("\nDumping %d bytes from flash to %s\n\n", imageSize, firmwareFile.c_str());
+  f = fopen(firmwareFile.c_str(), "wb");
+  if(!f) throw std::invalid_argument("Cannot open firmware file");
+
+  addr = 0;
+  do {
+    reg_control = 0; // clear reg control status before write to buffer
+    reg_control.write();
+
+    reg_area_write[0] = getCommand("FAST_READ", addr_mode);
+    uint32_t reg_offset = writeAddress(addr, addr_mode);
+    reg_area_write.write();
+    reg_bytes_to_write = reg_offset;
+    reg_bytes_to_write.write();
+
+    reg_bytes_to_read = 1024 - 1;
+    reg_bytes_to_read.write();
+
+    reg_control = (PCIE_V5 | SPI_PROG | SPI_R_NW | SPI_START);
+    reg_control.write();
+    waitForSpi();
+
+    reg_area_read.read();
+    for(unsigned int i = 0; i < 1024; i++) {
+      data = reg_area_read[i] & 0xff;
+	  bwritten = fwrite(&data, 1, 1, f);
+	  addr++;
+	  if (bwritten != 1) {
+        throw std::runtime_error("Error writing firmware file");
+	  }
+    }
+    ProgressBar(imageSize, addr);
+  } while (addr < imageSize);
+  fclose(f);
+  printf("\nDump finished.\n\n");
+  return true;
+}
+
 void MtcaProgrammerSPI::rebootFPGA() {
   printf("FPGA rebooting...\n");
   reg_rev_switch = FPGA_REBOOT_WORD;
