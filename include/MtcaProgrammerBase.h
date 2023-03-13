@@ -16,11 +16,10 @@ struct ProgAccessRaw {
 };
 
 struct ProgAccessMap {
-  ProgAccessMap(std::string deviceName, std::string mapFilePath, std::string moduleName = "**DEFAULT**")
-  : mDeviceName(deviceName), mMapFilePath(mapFilePath), mModuleName(moduleName){};
+  ProgAccessMap(std::string deviceName, std::string moduleName = "**DEFAULT**")
+  : mDeviceName(deviceName), mModuleName(moduleName){};
 
   std::string mDeviceName;
-  std::string mMapFilePath;
   std::string mModuleName;
 };
 
