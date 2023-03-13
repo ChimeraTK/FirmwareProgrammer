@@ -5,6 +5,10 @@
 
 #include <ChimeraTK/NumericAddress.h>
 
+#include "MtcaProgrammerBase.h"
+
+#include <ChimeraTK/NumericAddress.h>
+
 #include <stdint.h>
 #include <string>
 
@@ -32,17 +36,7 @@ MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessMap& args)
   reg_control(ChimeraTK::ScalarRegisterAccessor<int32_t>()), reg_tck(ChimeraTK::ScalarRegisterAccessor<int32_t>()),
   reg_tms(ChimeraTK::ScalarRegisterAccessor<int32_t>()), reg_tdi(ChimeraTK::ScalarRegisterAccessor<int32_t>()),
   reg_tdo(ChimeraTK::ScalarRegisterAccessor<int32_t>()), reg_rev_switch(ChimeraTK::ScalarRegisterAccessor<int32_t>()) {
-  // std::cout << "args.mDeviceName: " << args.mDeviceName << std::endl;
-  // std::cout << "args.mMapFilePath: " << args.mMapFilePath << std::endl;
-
-  std::string full_dev_map_name;
-  if(args.mDeviceName.find("rebot") != std::string::npos)
-    full_dev_map_name = args.mDeviceName + "," + args.mMapFilePath;
-  else
-    full_dev_map_name = args.mDeviceName + "=" + args.mMapFilePath;
-
-  // std::cout << "full_dev_map_name: " << full_dev_map_name << std::endl;
-  mDevice.open(full_dev_map_name); // e.g. "sdm://./pci:llrfutcs3=mymapfile.map"
+  mDevice.open(args.mDeviceName);
 
   initRegisterAccessors(args.mModuleName);
 }

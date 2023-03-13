@@ -72,7 +72,6 @@ struct arguments_t {
   uint32_t flash_size;
   uint8_t bar;
   std::string dmap_file_path;
-  std::string map_file_path;
   std::string map_area_name;
   bool action_programming;
   bool action_verification;
@@ -82,8 +81,8 @@ struct arguments_t {
   arguments_t()
   : interface(ProgrammingInterface(ProgrammingInterface::INTERFACE_NONE)), firmware_file_path(), device_name(),
     device_name_raw(false), address(PROG_DEFAULT_ADDRESS), flash_size(0), bar(PROG_DEFAULT_BAR), dmap_file_path(),
-    map_file_path(), map_area_name("**DEFAULT**"), action_programming(false), action_verification(false),
-    action_dump(false), action_reload(false) {}
+    map_area_name("**DEFAULT**"), action_programming(false), action_verification(false), action_dump(false),
+    action_reload(false) {}
 
   string toString() {
     ostringstream os;
@@ -102,22 +101,17 @@ struct arguments_t {
 void usage(const char* progname) {
   std::cout << "Usage:" << std::endl;
   std::cout << "1) Direct: " << progname
-            << " -d [device] [actions] -i [interface] -f [firmware file] -a "
-               "[address]b[bar]"
-            << std::endl;
-  std::cout << "2) MAP: " << progname
-            << " -d [device] [actions] -i [interface] -f [firmware file] -M "
-               "[map_file] -R[boot_area_name]"
+            << " -d [device] [actions] -i [interface] -f [firmware file] -a [address]b[bar]" << std::endl;
+  std::cout << "2) MAP: " << progname << " -d [device] [actions] -i [interface] -f [firmware file] -R [boot_area_name]"
             << std::endl;
   std::cout << "3) DMAP: " << progname
-            << " -d [device] [actions] -i [interface] -f [firmware file] -D "
-               "[dmap_file] -R[boot_area_name]"
+            << " -d [device] [actions] -i [interface] -f [firmware file] -D [dmap_file] -R [boot_area_name]"
             << std::endl;
 }
 
 arguments_t parse_arguments(int argc, char* argv[]) {
   arguments_t args;
-  const std::string raw_prefix("sdm://");
+  const std::string raw_prefix("(");
 
   // Declare a group of options that will be
   // allowed only on command line
@@ -187,8 +181,6 @@ arguments_t parse_arguments(int argc, char* argv[]) {
   if(vm.count("firmware_file")) args.firmware_file_path = vm["firmware_file"].as<std::string>();
 
   if(vm.count("dmap")) args.dmap_file_path = vm["dmap"].as<std::string>();
-
-  if(vm.count("map")) args.map_file_path = vm["map"].as<std::string>();
 
   if(vm.count("boot_area")) args.map_area_name = vm["boot_area"].as<std::string>();
 
@@ -306,27 +298,21 @@ int main(int argc, char* argv[]) {
           throw std::invalid_argument("Unknown interface\n\n");
       }
     }
-    else if(!arguments.map_file_path.empty()) // MAP mode
+    else if(arguments.device_name_raw) // MAP mode
     {
-      if(!arguments.device_name_raw) {
-        throw std::invalid_argument("Wrong device name.\nPlease specify device "
-                                    "name in 'sdm' format\n\n");
-      }
-
-      cout << "Input mode - MAP" << endl;
+      cout << "Input mode - CDD" << endl;
       cout << "Firmware file: " << arguments.firmware_file_path << endl;
       cout << "Device name: " << arguments.device_name << endl;
-      cout << "MAP file: " << arguments.map_file_path << endl;
       cout << "Module name in MAP file: " << arguments.map_area_name << endl;
 
       switch(arguments.interface.getType()) {
         case ProgrammingInterface::INTERFACE_SPI:
-          programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerSPI(
-              ProgAccessMap(arguments.device_name, arguments.map_file_path, arguments.map_area_name)));
+          programmer = boost::shared_ptr<MtcaProgrammerBase>(
+              new MtcaProgrammerSPI(ProgAccessMap(arguments.device_name, arguments.map_area_name)));
           break;
         case ProgrammingInterface::INTERFACE_JTAG:
-          programmer = boost::shared_ptr<MtcaProgrammerBase>(new MtcaProgrammerJTAG(
-              ProgAccessMap(arguments.device_name, arguments.map_file_path, arguments.map_area_name)));
+          programmer = boost::shared_ptr<MtcaProgrammerBase>(
+              new MtcaProgrammerJTAG(ProgAccessMap(arguments.device_name, arguments.map_area_name)));
           break;
         default:
           throw std::invalid_argument("Unknown interface\n\n");
