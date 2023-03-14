@@ -1,17 +1,13 @@
-/*
- * File:   MtcaProgrammerJTAG.cpp
- * Author: pperek
- *
- * Created on 15 kwiecień 2015, 12:00
- */
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, https://msk.desy.de
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "MtcaProgrammerJTAG.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "progress_bar.h"
 #include "registers.h"
+
+#include <stdio.h>
+#include <stdlib.h>
 
 const uint8_t MtcaProgrammerJTAG::xsvf_pattern[16] = {
     0x07, 0x00, 0x13, 0x00, 0x14, 0x00, 0x12, 0x00, 0x12, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x02};
@@ -114,14 +110,13 @@ void MtcaProgrammerJTAG::setPort(jtag_port_t p, short val) {
 /* readTDOBit:  Implement to return the current value of the JTAG TDO signal.*/
 /* read the TDO bit from port */
 unsigned char MtcaProgrammerJTAG::readTDOBit() {
-
   // TDO checked on falling edge of CLK
   reg_tck = 0x0;
   reg_tck.write();
   // make sure TCK is set low
   while(1) {
     reg_tck.read();
-    if (reg_tck == 0) break;
+    if(reg_tck == 0) break;
   }
 
   reg_tdo.read();

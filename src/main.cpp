@@ -1,4 +1,22 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, https://msk.desy.de
+// SPDX-License-Identifier: LGPL-3.0-or-later
+
+#include "MtcaProgrammerBase.h"
+#include "MtcaProgrammerJTAG.h"
+#include "MtcaProgrammerSPI.h"
+#include "registers.h"
+#include "version.h"
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/un.h>
+
+#include <boost/exception/diagnostic_information.hpp>
+#include <boost/program_options.hpp>
+
 #include <assert.h>
 #include <ctype.h>
 #include <dirent.h>
@@ -6,33 +24,16 @@
 #include <fcntl.h>
 #include <iostream>
 #include <netdb.h>
-#include <netinet/in.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/un.h>
+#include <string>
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
 
-#include <boost/exception/diagnostic_information.hpp>
-#include <boost/program_options.hpp>
-#include <iostream>
-#include <string>
-
-#include "MtcaProgrammerBase.h"
-#include "MtcaProgrammerJTAG.h"
-#include "MtcaProgrammerSPI.h"
-#include "registers.h"
-
-#include "version.h"
-
-//#define DEBUG
+// #define DEBUG
 
 using namespace std;
 namespace po = boost::program_options;
@@ -80,8 +81,9 @@ struct arguments_t {
 
   arguments_t()
   : interface(ProgrammingInterface(ProgrammingInterface::INTERFACE_NONE)), firmware_file_path(), device_name(),
-    device_name_raw(false), address(PROG_DEFAULT_ADDRESS), flash_size(0), bar(PROG_DEFAULT_BAR), dmap_file_path(), map_file_path(),
-    map_area_name("**DEFAULT**"), action_programming(false), action_verification(false), action_dump(false), action_reload(false) {}
+    device_name_raw(false), address(PROG_DEFAULT_ADDRESS), flash_size(0), bar(PROG_DEFAULT_BAR), dmap_file_path(),
+    map_file_path(), map_area_name("**DEFAULT**"), action_programming(false), action_verification(false),
+    action_dump(false), action_reload(false) {}
 
   string toString() {
     ostringstream os;
@@ -127,12 +129,12 @@ arguments_t parse_arguments(int argc, char* argv[]) {
   // config file
   po::options_description config("Configuration");
   config.add_options()("program,p", po::bool_switch()->default_value(false), "erase and program memory")("verify,v",
-      po::bool_switch()->default_value(false), "verify memory")("dump,m",
-      po::bool_switch()->default_value(false), "dump memory")("reload,r", po::bool_switch()->default_value(false),
-      "reload FPGA")("interface,i", po::value<string>(), "memory interface (spi/jtag)")(
-      "firmware_file,f", po::value<string>(), "FPGA firmware file")("device,d", po::value<string>(), "device name")(
-      "address,a", po::value<string>(), "address and bar of boot area in FGPA - example: -a [address]b[bar]")(
-      "flash_size,s", po::value<string>(), "size of flash chip to dump, in bytes - example for a 256M (32MiB) chip: -s 33554432")(
+      po::bool_switch()->default_value(false), "verify memory")("dump,m", po::bool_switch()->default_value(false),
+      "dump memory")("reload,r", po::bool_switch()->default_value(false), "reload FPGA")("interface,i",
+      po::value<string>(), "memory interface (spi/jtag)")("firmware_file,f", po::value<string>(), "FPGA firmware file")(
+      "device,d", po::value<string>(), "device name")("address,a", po::value<string>(),
+      "address and bar of boot area in FGPA - example: -a [address]b[bar]")("flash_size,s", po::value<string>(),
+      "size of flash chip to dump, in bytes - example for a 256M (32MiB) chip: -s 33554432")(
       "dmap,D", po::value<string>(), "DMAP file path")("map,M", po::value<string>(), "MAP file path")(
       "boot_area,R", po::value<string>(), "boot area name in MAP file");
 
@@ -228,7 +230,8 @@ arguments_t parse_arguments(int argc, char* argv[]) {
 }
 
 void verify_arguments(arguments_t arguments) {
-  if(!arguments.action_programming && !arguments.action_reload && !arguments.action_verification && !arguments.action_dump) {
+  if(!arguments.action_programming && !arguments.action_reload && !arguments.action_verification &&
+      !arguments.action_dump) {
     throw std::logic_error("Please specify action(s) to be executed");
   }
 
@@ -237,12 +240,12 @@ void verify_arguments(arguments_t arguments) {
   }
 
   if(arguments.action_dump && arguments.flash_size == 0) {
-	  throw std::logic_error("Cannot dump a flash image without knowing the size of the chip.\n"
-			                 "Please specify the number of bytes to dump.\n");
+    throw std::logic_error("Cannot dump a flash image without knowing the size of the chip.\n"
+                           "Please specify the number of bytes to dump.\n");
   }
 
   if(arguments.flash_size && (arguments.flash_size % 1024)) {
-	  throw std::logic_error("The flash size must be a multiple of 1024.\n");
+    throw std::logic_error("The flash size must be a multiple of 1024.\n");
   }
 
   if(arguments.device_name.empty()) {
@@ -259,7 +262,7 @@ void verify_arguments(arguments_t arguments) {
     throw std::logic_error("Firmware file is missing.\n"
                            "Please specify the location of file with firmware.\n");
   }
-  else if (arguments.action_programming || arguments.action_verification) {
+  else if(arguments.action_programming || arguments.action_verification) {
     FILE* tmp_file = fopen(arguments.firmware_file_path.c_str(), "r");
     if(tmp_file == NULL)
       throw std::invalid_argument("Cannot open firmware file. Please check if file exists and you have "
@@ -359,9 +362,9 @@ int main(int argc, char* argv[]) {
 
 #if 1
     if(arguments.action_programming || arguments.action_verification) {
-	  if (!programmer->checkFirmwareFile(arguments.firmware_file_path)) {
+      if(!programmer->checkFirmwareFile(arguments.firmware_file_path)) {
         throw std::runtime_error("Incorrect firmware file\n");
-	  }
+      }
     }
     if(arguments.action_programming) {
       programmer->erase();

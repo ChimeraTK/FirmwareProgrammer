@@ -1,12 +1,6 @@
-/*
- * File:   MtcaProgrammerJTAG.h
- * Author: pperek
- *
- * Created on 15 kwiecień 2015, 12:00
- */
-
-#ifndef MTCAPROGRAMMERJTAG_H
-#define MTCAPROGRAMMERJTAG_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, https://msk.desy.de
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "MtcaProgrammerBase.h"
 #include "XSVFPlayer.h"
@@ -35,5 +29,3 @@ class MtcaProgrammerJTAG : public MtcaProgrammerBase, XSVFPlayerInterface {
  private:
   static const uint8_t xsvf_pattern[16];
 };
-
-#endif /* MTCAPROGRAMMERJTAG_H */

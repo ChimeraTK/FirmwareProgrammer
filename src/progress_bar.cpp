@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, https://msk.desy.de
+// SPDX-License-Identifier: LGPL-3.0-or-later
+
+#include <sys/ioctl.h>
+
+#include <chrono>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/ioctl.h>
 #include <term.h>
-
-#include <chrono>
 using namespace std::chrono;
 
 int last_value = 0;

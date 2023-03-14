@@ -1,12 +1,6 @@
-/*
- * File:   XSVFPlayer.h
- * Author: pperek
- *
- * Created on 23 kwiecień 2015, 15:48
- */
-
-#ifndef XSVFPLAYER_H
-#define XSVFPLAYER_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, https://msk.desy.de
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "MtcaProgrammerBase.h"
 #include "XSVFPlayerConstants.h"
@@ -70,5 +64,3 @@ class XSVFPlayer {
   int xsvfDoXCOMMENT(SXsvfInfo* pXsvfInfo);
   int xsvfDoXWAIT(SXsvfInfo* pXsvfInfo);
 };
-
-#endif /* XSVFPLAYER_H */

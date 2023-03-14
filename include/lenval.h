@@ -1,11 +1,12 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, https://msk.desy.de
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
+
 /*******************************************************/
 /* file: lenval.h                                      */
 /* abstract:  This file contains a description of the  */
 /*            data structure "lenval".                 */
 /*******************************************************/
-
-#ifndef lenval_dot_h
-#define lenval_dot_h
 
 /* the lenVal structure is a byte oriented type used to store an */
 /* arbitrary length binary value. As an example, the hex value   */
@@ -82,5 +83,3 @@ short RetBit(lenVal* lv, int byte, int bit);
 /* set the (byte, bit) of lv equal to val (e.g. SetBit("00000000",byte, 1)
    equals "01000000" */
 void SetBit(lenVal* lv, int byte, int bit, short val);
-
-#endif

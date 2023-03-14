@@ -1,5 +1,6 @@
-#ifndef _REGISTERS_H_
-#define _REGISTERS_H_
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, https://msk.desy.de
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #define PROG_DEFAULT_ADDRESS 65536
 #define PROG_DEFAULT_BAR 0
@@ -45,5 +46,3 @@
 
 // Revision switch register (REG_REV_SWITCH)
 #define FPGA_REBOOT_WORD 0x2EB00701
-
-#endif /*_REGISTERS_H_*/

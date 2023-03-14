@@ -1,14 +1,11 @@
-/*
- * File:   XSVFPlayer.cpp
- * Author: pperek
- *
- * Created on 23 kwiecień 2015, 15:48
- */
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, https://msk.desy.de
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "XSVFPlayer.h"
+
 #include "MtcaProgrammerJTAG.h"
-#include "XSVFPlayerConstants.h"
 #include "progress_bar.h"
+#include "XSVFPlayerConstants.h"
 
 #define SET_PORT(PORT, VAL)                                                                                            \
   {                                                                                                                    \
