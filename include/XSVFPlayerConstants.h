@@ -1,19 +1,13 @@
-/*
- * File:   XSVFPlayerConstants.h
- * Author: pperek
- *
- * Created on 24 kwiecień 2015, 10:42
- */
-
-#ifndef XSVFPLAYERCONSTANTS_H
-#define XSVFPLAYERCONSTANTS_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, https://msk.desy.de
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "lenval.h"
 
 /*============================================================================
 * #include files
 ============================================================================*/
-//#define DEBUG_MODE
+// #define DEBUG_MODE
 #ifdef DEBUG_MODE
 #  include <stdio.h>
 #  include <stdlib.h>
@@ -238,5 +232,3 @@ typedef struct tagSXsvfInfo {
   lenVal lvNextData;    /* Next data for XSDRINC */
 #endif                  /* XSVF_SUPPORT_COMPRESSION */
 } SXsvfInfo;
-
-#endif /* XSVFPLAYERCONSTANTS_H */

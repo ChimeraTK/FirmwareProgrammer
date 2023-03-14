@@ -1,8 +1,5 @@
-/*******************************************************/
-/* file: lenval.c                                      */
-/* abstract:  This file contains routines for using    */
-/*            the lenVal data structure.               */
-/*******************************************************/
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, https://msk.desy.de
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "lenval.h"
 
 /*****************************************************************************

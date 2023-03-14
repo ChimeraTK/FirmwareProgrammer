@@ -1,12 +1,6 @@
-/*
- * File:   MtcaProgrammerSPI.h
- * Author: pperek
- *
- * Created on 14 kwiecień 2015, 23:16
- */
-
-#ifndef MTCAPROGRAMMERSPI_H
-#define MTCAPROGRAMMERSPI_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, https://msk.desy.de
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "MtcaProgrammerBase.h"
 
@@ -50,5 +44,3 @@ class MtcaProgrammerSPI : public MtcaProgrammerBase {
   void programMemoryPage(unsigned int address, unsigned int size, unsigned char* buffer, addressing_mode_t addr_mode);
   long int findDataOffset(FILE* file);
 };
-
-#endif /* MTCAPROGRAMMERSPI_H */

@@ -18,6 +18,8 @@ include(cmake/add_dependency.cmake)
 add_dependency(ChimeraTK-DeviceAccess 1.00 REQUIRED)
 add_dependency(Boost 1.46 program_options REQUIRED)
 
+include(cmake/enable_code_style_check.cmake)
+
 #Add Curses dependency
 set(CURSES_USE_NCURSES TRUE)
 FIND_PACKAGE(Curses)
@@ -38,7 +40,7 @@ set_target_properties(${EXEC_NAME} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS}"
 set_target_properties(${EXEC_NAME} PROPERTIES LINK_FLAGS "${ChimeraTK-DeviceAccess_LINK_FLAGS} ${Boost_LINK_FLAGS} ${CURSES_LINK_FLAGS}")
 target_link_libraries(${EXEC_NAME} ${ChimeraTK-DeviceAccess_LIBRARIES} ${Boost_LIBRARIES} ${CURSES_LIBRARIES})
 
-#change the install prefix to the source directory in case the user has not specified a destination 
+#change the install prefix to the source directory in case the user has not specified a destination
 #i. e. CMAKE_INSTALL_PREFIX is not set manually
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/install CACHE PATH "Install directory
@@ -56,8 +58,8 @@ if(DOXYGEN_FOUND)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
   if(NOT EXISTS "${DOXROOT}")
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doc")
-  endif()  
-  
+  endif()
+
   add_custom_target(doc ALL
     ${DOXYGEN_EXECUTABLE}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -68,4 +70,3 @@ if(DOXYGEN_FOUND)
 else(DOXYGEN_FOUND)
   message("Doxygen not found, documentation will not be build.")
 endif(DOXYGEN_FOUND)
-

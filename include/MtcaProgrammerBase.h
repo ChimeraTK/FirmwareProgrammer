@@ -1,16 +1,10 @@
-/*
- * File:   MtcaProgrammerBase.h
- * Author: pperek
- *
- * Created on 14 kwiecień 2015, 22:52
- */
-
-#ifndef MTCAPROGRAMMERBASE_H
-#define MTCAPROGRAMMERBASE_H
-
-#include <ChimeraTK/Device.h>
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, https://msk.desy.de
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "registers.h"
+
+#include <ChimeraTK/Device.h>
 
 struct ProgAccessRaw {
   ProgAccessRaw(std::string deviceName, uint8_t bar = PROG_DEFAULT_BAR, uint32_t address = PROG_DEFAULT_ADDRESS)
@@ -72,5 +66,3 @@ class MtcaProgrammerBase {
  private:
   void initRegisterAccessors(std::string registerPathName);
 };
-
-#endif /* MTCAPROGRAMMERBASE_H */

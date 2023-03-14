@@ -1,12 +1,6 @@
-/*
- * File:   XSVFPlayerInterface.h
- * Author: pperek
- *
- * Created on 24 kwiecień 2015, 10:11
- */
-
-#ifndef XSVFPLAYERINTERFACE_H
-#define XSVFPLAYERINTERFACE_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, https://msk.desy.de
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 /* these constants are used to send the appropriate ports to setPort */
 enum jtag_port_t { TCK, TMS, TDI };
@@ -21,5 +15,3 @@ class XSVFPlayerInterface {
 
  private:
 };
-
-#endif /* XSVFPLAYERINTERFACE_H */

@@ -1,21 +1,18 @@
-/*
- * File:   MtcaProgrammerSPI.cpp
- * Author: pperek
- *
- * Created on 14 kwiecień 2015, 23:16
- */
-
-#include <ChimeraTK/AccessMode.h>
-#include <ChimeraTK/Device.h>
-#include <ChimeraTK/RegisterPath.h>
-#include <stdio.h>
-#include <stdlib.h>
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, https://msk.desy.de
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "MtcaProgrammerSPI.h"
 
 #include "MtcaProgrammerBase.h"
 #include "progress_bar.h"
 #include "registers.h"
+
+#include <ChimeraTK/AccessMode.h>
+#include <ChimeraTK/Device.h>
+#include <ChimeraTK/RegisterPath.h>
+
+#include <stdio.h>
+#include <stdlib.h>
 
 /*************************************************************************************/
 /* Identifiers of known PROM memories mounted on boards supported by the
@@ -235,14 +232,14 @@ bool MtcaProgrammerSPI::dump(std::string firmwareFile, uint32_t imageSize) {
     reg_area_read.read();
     for(unsigned int i = 0; i < 1024; i++) {
       data = reg_area_read[i] & 0xff;
-	  bwritten = fwrite(&data, 1, 1, f);
-	  addr++;
-	  if (bwritten != 1) {
+      bwritten = fwrite(&data, 1, 1, f);
+      addr++;
+      if(bwritten != 1) {
         throw std::runtime_error("Error writing firmware file");
-	  }
+      }
     }
     ProgressBar(imageSize, addr);
-  } while (addr < imageSize);
+  } while(addr < imageSize);
   fclose(f);
   printf("\nDump finished.\n\n");
   return true;
@@ -253,7 +250,6 @@ void MtcaProgrammerSPI::rebootFPGA() {
   reg_rev_switch = FPGA_REBOOT_WORD;
   reg_rev_switch.write();
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 //  PRIVATE                                                                   //
@@ -481,16 +477,17 @@ long int MtcaProgrammerSPI::findDataOffset(FILE* file) {
       break;
     }
   }
-  if (offset > 0 and not bit_file) { // binary file take as is
+  if(offset > 0 and not bit_file) { // binary file take as is
     offset = 0;
   }
-  if (offset > 0 and bit_file) { // bit file, remove header
-    offset = offset - 16; // include 16bytes before SYNC WORD. Optional Bus Width Sync.
+  if(offset > 0 and bit_file) { // bit file, remove header
+    offset = offset - 16;       // include 16bytes before SYNC WORD. Optional Bus Width Sync.
     // include as well all NOOP DWORDS up to variable header: 0xFFFFFFFF
-    for (int i = (offset-1); i > 4; i-=4) {
+    for(int i = (offset - 1); i > 4; i -= 4) {
       if((buffer[i] == 0xFF) && (buffer[i - 1] == 0xFF) && (buffer[i - 2] == 0xFF) && (buffer[i - 3] == 0xFF)) {
         offset = offset - 4;
-      } else {
+      }
+      else {
         break;
       }
     }
@@ -536,10 +533,8 @@ void MtcaProgrammerSPI::programMemory(std::string firmwareFile) {
   } while(1);
 }
 
-void MtcaProgrammerSPI::programMemoryPage(unsigned int address,
-    unsigned int size,
-    unsigned char* buffer,
-    addressing_mode_t addr_mode) {
+void MtcaProgrammerSPI::programMemoryPage(
+    unsigned int address, unsigned int size, unsigned char* buffer, addressing_mode_t addr_mode) {
   unsigned int data;
 
   //    printf("Programming flash at address %x\n",address);

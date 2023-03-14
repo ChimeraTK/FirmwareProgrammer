@@ -1,15 +1,12 @@
-/*
- * File:   MtcaProgrammerBase.cpp
- * Author: pperek
- *
- * Created on 14 kwiecień 2015, 22:52
- */
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, https://msk.desy.de
+// SPDX-License-Identifier: LGPL-3.0-or-later
+
+#include "MtcaProgrammerBase.h"
+
+#include <ChimeraTK/NumericAddress.h>
 
 #include <stdint.h>
 #include <string>
-
-#include "MtcaProgrammerBase.h"
-#include <ChimeraTK/NumericAddress.h>
 
 MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessRaw& args)
 : mDevice(ChimeraTK::Device()), reg_area_write(ChimeraTK::OneDRegisterAccessor<int32_t>()),
@@ -81,7 +78,8 @@ void MtcaProgrammerBase::initRegisterAccessors(std::string registerPathName) {
       registerPathName = PROG_DEFAULT_MODULE_NAME3;
     }
     else {
-      std::cout << "Neither " << PROG_DEFAULT_MODULE_NAME << " nor " << PROG_DEFAULT_MODULE_NAME2 << " nor " << PROG_DEFAULT_MODULE_NAME3 << " register has "
+      std::cout << "Neither " << PROG_DEFAULT_MODULE_NAME << " nor " << PROG_DEFAULT_MODULE_NAME2 << " nor "
+                << PROG_DEFAULT_MODULE_NAME3 << " register has "
                 << "been found in the device. Please specify the correct name "
                    "of the AREA_BOOT register!"
                 << std::endl;
