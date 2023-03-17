@@ -1,42 +1,50 @@
 // SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, https://msk.desy.de
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
+#include "progress_bar.h"
+
 #include <sys/ioctl.h>
 
-#include <chrono>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <term.h>
-using namespace std::chrono;
 
-int last_value = 0;
-high_resolution_clock::time_point last_time = high_resolution_clock::now();
+/**********************************************************************************************************************/
 
 int my_putchar(int c) {
   return putchar(c);
 }
 
-void ProgressBar(double TotalToDownload, double NowDownloaded) {
+/**********************************************************************************************************************/
+
+bool ProgressBar::_doNotShow{false};
+
+/**********************************************************************************************************************/
+
+void ProgressBar::setDoNotShow(bool doNotShow) {
+  _doNotShow = doNotShow;
+}
+
+/**********************************************************************************************************************/
+
+void ProgressBar::update(double TotalToDownload, double NowDownloaded) {
+  if(_doNotShow) return;
+
   int total_barlength;
   int col;
-  struct winsize size;
+  struct winsize size {};
 
-  setupterm(NULL, fileno(stdout), (int*)0);
+  setupterm(nullptr, fileno(stdout), nullptr);
 
-  ioctl(0, TIOCGWINSZ, (char*)&size); // get terminal size
+  ioctl(0, TIOCGWINSZ, static_cast<void*>(&size)); // get terminal size
   col = size.ws_col;
   total_barlength = col - 10;
 
-  int progress = lround((NowDownloaded / TotalToDownload) * 100);
-  int barlength = lround(((float)progress / 100) * total_barlength);
+  auto progress = int(lround((NowDownloaded / TotalToDownload) * 100));
+  auto barlength = lround((double(progress) / 100) * total_barlength);
 
   if(progress != last_value) {
-    // high_resolution_clock::time_point current_time =
-    // high_resolution_clock::now(); duration<double, std::milli> time_diff =
-    // current_time - last_time; printf("time_diff: %.2f ms\n", time_diff);
-    // last_time = current_time;
-
     tputs(clr_eol, 1, my_putchar); // clear line
     printf("%4d%% [", progress);
     int ii = 0;
@@ -52,3 +60,5 @@ void ProgressBar(double TotalToDownload, double NowDownloaded) {
     last_value = progress;
   }
 }
+
+/**********************************************************************************************************************/

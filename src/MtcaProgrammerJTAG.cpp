@@ -145,8 +145,9 @@ void MtcaProgrammerJTAG::waitTime(long microsec) {
     microsec /= 100;
 
     int i = 0;
+    ProgressBar progress;
     for(i = 1; i <= 100; i++) {
-      ProgressBar(100, i);
+      progress.update(100, i);
       usleep(microsec);
     }
     printf("\nProgramming...\n");

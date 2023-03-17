@@ -151,6 +151,7 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile) {
   uint64_t mem_id = getMemoryId();
   addressing_mode_t addr_mode = known_proms.at(mem_id).addressing_mode;
 
+  ProgressBar progress;
   do {
     bread = fread(buffer, 1, 1024, f);
     if(bread == 0) {
@@ -188,7 +189,7 @@ bool MtcaProgrammerSPI::verify(std::string firmwareFile) {
       }
     }
     addr = addr + bread;
-    ProgressBar(file_size, addr);
+    progress.update(file_size, addr);
   } while(1);
 }
 
@@ -212,6 +213,7 @@ bool MtcaProgrammerSPI::dump(std::string firmwareFile, uint32_t imageSize) {
   if(!f) throw std::invalid_argument("Cannot open firmware file");
 
   addr = 0;
+  ProgressBar progress;
   do {
     reg_control = 0; // clear reg control status before write to buffer
     reg_control.write();
@@ -238,7 +240,7 @@ bool MtcaProgrammerSPI::dump(std::string firmwareFile, uint32_t imageSize) {
         throw std::runtime_error("Error writing firmware file");
       }
     }
-    ProgressBar(imageSize, addr);
+    progress.update(imageSize, addr);
   } while(addr < imageSize);
   fclose(f);
   printf("\nDump finished.\n\n");
@@ -361,15 +363,16 @@ void MtcaProgrammerSPI::memoryBulkErase() {
   reg_control.write();
   waitForSpi();
 
+  ProgressBar progress_bar;
   do {
     data = readStatus();
     if(progress <= max_time) {
-      ProgressBar(max_time, progress++);
+      progress_bar.update(max_time, progress++);
       sleep(1);
     }
     /// printf("data = 0x%X\n", data);
   } while(data & 1);
-  ProgressBar(max_time, max_time); // progress bar = 100%
+  progress_bar.update(max_time, max_time); // progress bar = 100%
   printf("\n");
 }
 
@@ -517,6 +520,7 @@ void MtcaProgrammerSPI::programMemory(std::string firmwareFile) {
   uint64_t mem_id = getMemoryId();
   addressing_mode_t addr_mode = known_proms.at(mem_id).addressing_mode;
 
+  ProgressBar progress;
   do {
     bread = fread(buffer, 1, 256, f);
     if(bread == 0) {
@@ -529,7 +533,7 @@ void MtcaProgrammerSPI::programMemory(std::string firmwareFile) {
     memoryWriteEnable();
     programMemoryPage(addr, bread, buffer, addr_mode);
     addr = addr + bread;
-    ProgressBar(file_size, addr);
+    progress.update(file_size, addr);
   } while(1);
 }
 

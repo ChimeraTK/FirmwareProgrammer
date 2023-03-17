@@ -4,8 +4,8 @@
 #include "XSVFPlayer.h"
 
 #include "MtcaProgrammerJTAG.h"
-#include "progress_bar.h"
 #include "XSVFPlayerConstants.h"
+#include "progress_bar.h"
 
 #define SET_PORT(PORT, VAL)                                                                                            \
   {                                                                                                                    \
@@ -84,15 +84,16 @@ void XSVFPlayer::run(std::string file) {
   commandCounter = 0;
 
   xsvfInitialize(&sxvfInfo);
+  ProgressBar progress;
   do {
     commandCounter++;
     xsvfRun(&sxvfInfo);
     if(sxvfInfo.iErrorCode != XSVF_ERROR_NONE) break;
     if(commandCounter % 100 == 0) {
-      ProgressBar(totalCommandCounter, commandCounter);
+      progress.update(totalCommandCounter, commandCounter);
     }
   } while(sxvfInfo.ucComplete == 0);
-  ProgressBar(totalCommandCounter, totalCommandCounter);
+  progress.update(totalCommandCounter, totalCommandCounter);
 
   fclose(mFile);
   mFile = NULL;

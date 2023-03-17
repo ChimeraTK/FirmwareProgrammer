@@ -2,4 +2,14 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-void ProgressBar(double TotalToDownload, double NowDownloaded);
+class ProgressBar {
+ public:
+  void update(double TotalToDownload, double NowDownloaded);
+
+  static void setDoNotShow(bool doNotShow);
+
+ private:
+  static bool _doNotShow;
+
+  int last_value = 0;
+};

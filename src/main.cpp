@@ -4,6 +4,7 @@
 #include "MtcaProgrammerBase.h"
 #include "MtcaProgrammerJTAG.h"
 #include "MtcaProgrammerSPI.h"
+#include "progress_bar.h"
 #include "registers.h"
 #include "version.h"
 #include <arpa/inet.h>
@@ -77,6 +78,7 @@ struct arguments_t {
   bool action_verification;
   bool action_dump;
   bool action_reload;
+  bool quiet_mode;
 
   arguments_t()
   : interface(ProgrammingInterface(ProgrammingInterface::INTERFACE_NONE)), firmware_file_path(), device_name(),
@@ -129,8 +131,9 @@ arguments_t parse_arguments(int argc, char* argv[]) {
       "device,d", po::value<string>(), "device name")("address,a", po::value<string>(),
       "address and bar of boot area in FGPA - example: -a [address]b[bar]")("flash_size,s", po::value<string>(),
       "size of flash chip to dump, in bytes - example for a 256M (32MiB) chip: -s 33554432")(
-      "dmap,D", po::value<string>(), "DMAP file path")("map,M", po::value<string>(), "MAP file path")(
-      "boot_area,R", po::value<string>(), "boot area name in MAP file");
+      "dmap,D", po::value<string>(), "DMAP file path")("map,M", po::value<string>(), "MAP file path")("boot_area,R",
+      po::value<string>(),
+      "boot area name in MAP file")("quiet,q", po::bool_switch()->default_value(false), "disable progress bar");
 
   po::options_description cmdline_options;
   cmdline_options.add(generic).add(config);
@@ -160,6 +163,7 @@ arguments_t parse_arguments(int argc, char* argv[]) {
   args.action_verification = vm["verify"].as<bool>();
   args.action_dump = vm["dump"].as<bool>();
   args.action_reload = vm["reload"].as<bool>();
+  args.quiet_mode = vm["quiet"].as<bool>();
 
   if(vm.count("device")) {
     args.device_name = vm["device"].as<std::string>();
@@ -274,6 +278,9 @@ int main(int argc, char* argv[]) {
     arguments = parse_arguments(argc, argv);
     verify_arguments(arguments);
 
+    // Quite mode disables the progress bar
+    ProgressBar::setDoNotShow(arguments.quiet_mode);
+
     if(!arguments.dmap_file_path.empty()) // DMAP mode
     {
       // printf( "DMAP file is missing.\n"
@@ -346,7 +353,6 @@ int main(int argc, char* argv[]) {
     }
     cout << endl << endl;
 
-#if 1
     if(arguments.action_programming || arguments.action_verification) {
       if(!programmer->checkFirmwareFile(arguments.firmware_file_path)) {
         throw std::runtime_error("Incorrect firmware file\n");
@@ -365,7 +371,6 @@ int main(int argc, char* argv[]) {
     if(arguments.action_reload) {
       programmer->rebootFPGA();
     }
-#endif
   }
   catch(const std::exception& e) {
     std::cerr << "\nError: " << e.what() << std::endl;
