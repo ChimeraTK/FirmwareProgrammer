@@ -99,12 +99,15 @@ struct arguments_t {
 /** explain the usage of the program */
 void usage(const char* progname) {
   std::cout << "Usage:" << std::endl;
-  std::cout << "1) Direct: " << progname
-            << " -d [device] [actions] -i [interface] -f [firmware file] -a [address]b[bar]" << std::endl;
-  std::cout << "2) MAP: " << progname << " -d [device] [actions] -i [interface] -f [firmware file] -R [boot_area_name]"
+  std::cout << "1) DMAP: " << progname
+            << " [-p] [-v] [-m] [-r] -d <device_alias> [-i <interface>] -f <firmware file> -D <dmap_file> [-R "
+               "<boot_area_name>]"
             << std::endl;
-  std::cout << "3) DMAP: " << progname
-            << " -d [device] [actions] -i [interface] -f [firmware file] -D [dmap_file] -R [boot_area_name]"
+  std::cout << "2) MAP: " << progname
+            << " [-p] [-v] [-m] [-r] -d <device_descriptor> [-i <interface>] -f <firmware file> [-R <boot_area_name>]"
+            << std::endl;
+  std::cout << "3) Direct: " << progname
+            << " [-p] [-v] [-m] [-r] -d <device_descriptor> [-i <interface>] -f <firmware file> -a <address>b<bar>"
             << std::endl;
 }
 
@@ -115,7 +118,9 @@ arguments_t parse_arguments(int argc, char* argv[]) {
   // Declare a group of options that will be
   // allowed only on command line
   po::options_description generic("Generic options");
-  generic.add_options()("help,h", "produce help message")("config,c", po::value<string>(), "set configuration file");
+  generic.add_options()("help,h", "produce help message")("config,c", po::value<string>(),
+      "set configuration file name containing key=value pairs (hints: use long forms like 'program' or 'device' and "
+      "set on/off flags to true)");
 
   // Declare a group of options that will be
   // allowed both on command line and in
@@ -126,7 +131,9 @@ arguments_t parse_arguments(int argc, char* argv[]) {
       "dump memory")("reload,r", po::bool_switch()->default_value(false), "reload FPGA")("interface,i",
       po::value<string>(), "memory interface (spi/jtag)")("firmware_file,f", po::value<string>(), "FPGA firmware file")(
       "device,d", po::value<string>(), "device name")("address,a", po::value<string>(),
-      "address and bar of boot area in FGPA - example: -a [address]b[bar]")("flash_size,s", po::value<string>(),
+      ("address and bar of boot area in the format: [address]b[bar]. Use 'default' to refer to the default address (" +
+          std::to_string(PROG_DEFAULT_ADDRESS) + "b" + std::to_string(PROG_DEFAULT_BAR) + ").")
+          .c_str())("flash_size,s", po::value<string>(),
       "size of flash chip to dump, in bytes - example for a 256M (32MiB) chip: -s 33554432")(
       "dmap,D", po::value<string>(), "DMAP file path")("map,M", po::value<string>(), "MAP file path")("boot_area,R",
       po::value<string>(),
