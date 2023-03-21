@@ -189,7 +189,10 @@ arguments_t parse_arguments(int argc, char* argv[]) {
 
   if(vm.count("address")) {
     std::string address_input = vm["address"].as<std::string>();
-    // std::cout << "Address input: " << address_input << std::endl;
+    if(address_input == "default") {
+      address_input = std::to_string(PROG_DEFAULT_ADDRESS) + "b" + std::to_string(PROG_DEFAULT_BAR);
+    }
+    std::cout << "Address input: " << address_input << std::endl;
     uint32_t b_counter = 0;
     std::size_t b_position = address_input.find_first_of("b");
     while(b_position != std::string::npos) {
