@@ -5,10 +5,6 @@
 
 #include <ChimeraTK/NumericAddress.h>
 
-#include "MtcaProgrammerBase.h"
-
-#include <ChimeraTK/NumericAddress.h>
-
 #include <stdint.h>
 #include <string>
 
@@ -23,7 +19,7 @@ MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessRaw& args)
   reg_tdo(ChimeraTK::ScalarRegisterAccessor<int32_t>()), reg_rev_switch(ChimeraTK::ScalarRegisterAccessor<int32_t>()) {
   mDevice.open(args.mDeviceName);
 
-  std::string moduleName = ChimeraTK::numeric_address::BAR / args.mBar / (args.mAddress) * (PROG_REG_AREA_SIZE);
+  std::string moduleName = ChimeraTK::numeric_address::BAR() / args.mBar / (args.mAddress) * (PROG_REG_AREA_SIZE);
   initRegisterAccessors(moduleName);
 }
 
