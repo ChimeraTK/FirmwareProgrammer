@@ -15,7 +15,7 @@ INCLUDE(${CMAKE_SOURCE_DIR}/cmake/set_default_build_to_release.cmake)
 INCLUDE(${CMAKE_SOURCE_DIR}/cmake/set_default_flags.cmake)
 
 include(cmake/add_dependency.cmake)
-add_dependency(ChimeraTK-DeviceAccess 1.00 REQUIRED)
+add_dependency(ChimeraTK-DeviceAccess 03.08 REQUIRED)
 add_dependency(Boost 1.46 program_options REQUIRED)
 
 include(cmake/enable_code_style_check.cmake)
