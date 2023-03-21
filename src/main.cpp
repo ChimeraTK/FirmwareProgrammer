@@ -65,26 +65,23 @@ class ProgrammingInterface {
 };
 
 struct arguments_t {
-  ProgrammingInterface interface;
+  ProgrammingInterface interface {
+    ProgrammingInterface::INTERFACE_NONE
+  };
   std::string firmware_file_path;
   std::string device_name;
-  bool device_name_raw;
-  uint32_t address;
-  uint32_t flash_size;
-  uint8_t bar;
+  bool device_name_raw{false};
+  uint32_t address{PROG_DEFAULT_ADDRESS};
+  uint8_t bar{PROG_DEFAULT_BAR};
+  bool addressValid{false};
+  uint32_t flash_size{0};
   std::string dmap_file_path;
-  std::string map_area_name;
-  bool action_programming;
-  bool action_verification;
-  bool action_dump;
-  bool action_reload;
-  bool quiet_mode;
-
-  arguments_t()
-  : interface(ProgrammingInterface(ProgrammingInterface::INTERFACE_NONE)), firmware_file_path(), device_name(),
-    device_name_raw(false), address(PROG_DEFAULT_ADDRESS), flash_size(0), bar(PROG_DEFAULT_BAR), dmap_file_path(),
-    map_area_name("**DEFAULT**"), action_programming(false), action_verification(false), action_dump(false),
-    action_reload(false) {}
+  std::string map_area_name{"**DEFAULT**"};
+  bool action_programming{false};
+  bool action_verification{false};
+  bool action_dump{false};
+  bool action_reload{false};
+  bool quiet_mode{false};
 
   string toString() {
     ostringstream os;
@@ -216,6 +213,7 @@ arguments_t parse_arguments(int argc, char* argv[]) {
 
       args.address = address;
       args.bar = bar;
+      args.addressValid = true;
     }
     catch(...) {
       throw std::invalid_argument("Wrong format of programmer address.\n");
@@ -305,9 +303,9 @@ int main(int argc, char* argv[]) {
           throw std::invalid_argument("Unknown interface\n\n");
       }
     }
-    else if(arguments.device_name_raw) // MAP mode
+    else if(arguments.device_name_raw && !arguments.addressValid) // MAP mode
     {
-      cout << "Input mode - CDD" << endl;
+      cout << "Input mode - MAP" << endl;
       cout << "Firmware file: " << arguments.firmware_file_path << endl;
       cout << "Device name: " << arguments.device_name << endl;
       cout << "Module name in MAP file: " << arguments.map_area_name << endl;
