@@ -262,7 +262,7 @@ void verify_arguments(arguments_t arguments) {
                            "Please specify the interface appropriate for the device.\n");
   }
 
-  if(arguments.firmware_file_path.empty()) {
+  if((arguments.action_programming || arguments.action_verification) && arguments.firmware_file_path.empty()) {
     throw std::logic_error("Firmware file is missing.\n"
                            "Please specify the location of file with firmware.\n");
   }
