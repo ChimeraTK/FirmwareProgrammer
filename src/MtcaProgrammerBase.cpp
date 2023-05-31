@@ -67,9 +67,12 @@ void MtcaProgrammerBase::initRegisterAccessors(std::string registerPathName) {
     else if(mDevice.getRegisterCatalogue().hasRegister(PROG_DEFAULT_MODULE_NAME3)) {
       registerPathName = PROG_DEFAULT_MODULE_NAME3;
     }
+    else if(mDevice.getRegisterCatalogue().hasRegister(PROG_DEFAULT_MODULE_NAME4)) {
+      registerPathName = PROG_DEFAULT_MODULE_NAME4;
+    }
     else {
       std::cout << "Neither " << PROG_DEFAULT_MODULE_NAME << " nor " << PROG_DEFAULT_MODULE_NAME2 << " nor "
-                << PROG_DEFAULT_MODULE_NAME3 << " register has "
+                << PROG_DEFAULT_MODULE_NAME3 << " nor " << PROG_DEFAULT_MODULE_NAME4 << " register has "
                 << "been found in the device. Please specify the correct name "
                    "of the AREA_BOOT register!"
                 << std::endl;
