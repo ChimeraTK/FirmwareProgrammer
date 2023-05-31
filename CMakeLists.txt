@@ -14,9 +14,8 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 INCLUDE(${CMAKE_SOURCE_DIR}/cmake/set_default_build_to_release.cmake)
 INCLUDE(${CMAKE_SOURCE_DIR}/cmake/set_default_flags.cmake)
 
-include(cmake/add_dependency.cmake)
-add_dependency(ChimeraTK-DeviceAccess 03.08 REQUIRED)
-add_dependency(Boost 1.46 program_options REQUIRED)
+find_package(ChimeraTK-DeviceAccess 03.09 REQUIRED)
+find_package(Boost 1.46 REQUIRED COMPONENTS program_options)
 
 include(cmake/enable_code_style_check.cmake)
 
@@ -36,9 +35,8 @@ include_directories(${PROJECT_BINARY_DIR}/include)
 
 set(EXEC_NAME mtca4u_fw_programmer)
 add_executable(${EXEC_NAME} ${app_sources} )
-set_target_properties(${EXEC_NAME} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS}")
-set_target_properties(${EXEC_NAME} PROPERTIES LINK_FLAGS "${ChimeraTK-DeviceAccess_LINK_FLAGS} ${Boost_LINK_FLAGS} ${CURSES_LINK_FLAGS}")
-target_link_libraries(${EXEC_NAME} ${ChimeraTK-DeviceAccess_LIBRARIES} ${Boost_LIBRARIES} ${CURSES_LIBRARIES})
+# Curses seems not yet to provide an exported target, see https://gitlab.kitware.com/cmake/cmake/-/issues/23051
+target_link_libraries(${EXEC_NAME} ChimeraTK::ChimeraTK-DeviceAccess Boost::program_options ${CURSES_LIBRARIES})
 
 #change the install prefix to the source directory in case the user has not specified a destination
 #i. e. CMAKE_INSTALL_PREFIX is not set manually
