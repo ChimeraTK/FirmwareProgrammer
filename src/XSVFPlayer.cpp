@@ -4,8 +4,8 @@
 #include "XSVFPlayer.h"
 
 #include "MtcaProgrammerJTAG.h"
-#include "XSVFPlayerConstants.h"
 #include "progress_bar.h"
+#include "XSVFPlayerConstants.h"
 
 #define SET_PORT(PORT, VAL)                                                                                            \
   {                                                                                                                    \
