@@ -65,9 +65,7 @@ class ProgrammingInterface {
 };
 
 struct arguments_t {
-  ProgrammingInterface interface {
-    ProgrammingInterface::INTERFACE_NONE
-  };
+  ProgrammingInterface interface { ProgrammingInterface::INTERFACE_NONE };
   std::string firmware_file_path;
   std::string device_name;
   bool device_name_raw{false};
