@@ -7,6 +7,7 @@
 #include "progress_bar.h"
 #include "registers.h"
 #include "version.h"
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/ioctl.h>
@@ -23,16 +24,17 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <iostream>
 #include <netdb.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <string>
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
+
+#include <iostream>
+#include <string>
 
 // #define DEBUG
 
@@ -43,8 +45,8 @@ class ProgrammingInterface {
  public:
   enum InterfaceType { INTERFACE_NONE, INTERFACE_SPI, INTERFACE_JTAG };
 
-  ProgrammingInterface() : mType(INTERFACE_NONE){};
-  ProgrammingInterface(InterfaceType type) : mType(type){};
+  ProgrammingInterface() : mType(INTERFACE_NONE) {};
+  ProgrammingInterface(InterfaceType type) : mType(type) {};
   std::string toString() {
     switch(mType) {
       case INTERFACE_NONE:
@@ -65,7 +67,7 @@ class ProgrammingInterface {
 };
 
 struct arguments_t {
-  ProgrammingInterface interface { ProgrammingInterface::INTERFACE_NONE };
+  ProgrammingInterface interface{ProgrammingInterface::INTERFACE_NONE};
   std::string firmware_file_path;
   std::string device_name;
   bool device_name_raw{false};

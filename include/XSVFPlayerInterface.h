@@ -7,7 +7,7 @@ enum jtag_port_t { TCK, TMS, TDI };
 
 class XSVFPlayerInterface {
  public:
-  virtual ~XSVFPlayerInterface(){};
+  virtual ~XSVFPlayerInterface() {};
   virtual void setPort(jtag_port_t p, short val) = 0;
   virtual unsigned char readTDOBit() = 0;
   virtual void pulseClock() = 0;

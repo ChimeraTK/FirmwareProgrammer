@@ -8,7 +8,7 @@
 
 struct ProgAccessRaw {
   ProgAccessRaw(std::string deviceName, uint8_t bar = PROG_DEFAULT_BAR, uint32_t address = PROG_DEFAULT_ADDRESS)
-  : mDeviceName(deviceName), mBar(bar), mAddress(address){};
+  : mDeviceName(deviceName), mBar(bar), mAddress(address) {};
 
   std::string mDeviceName;
   uint8_t mBar;
@@ -17,7 +17,7 @@ struct ProgAccessRaw {
 
 struct ProgAccessMap {
   ProgAccessMap(std::string deviceName, std::string moduleName = "**DEFAULT**")
-  : mDeviceName(deviceName), mModuleName(moduleName){};
+  : mDeviceName(deviceName), mModuleName(moduleName) {};
 
   std::string mDeviceName;
   std::string mModuleName;
@@ -25,7 +25,7 @@ struct ProgAccessMap {
 
 struct ProgAccessDmap {
   ProgAccessDmap(std::string deviceName, std::string dmapFilePath, std::string moduleName = "**DEFAULT**")
-  : mDeviceName(deviceName), mDmapFilePath(dmapFilePath), mModuleName(moduleName){};
+  : mDeviceName(deviceName), mDmapFilePath(dmapFilePath), mModuleName(moduleName) {};
 
   std::string mDeviceName;
   std::string mDmapFilePath;
