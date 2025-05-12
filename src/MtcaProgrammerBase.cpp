@@ -6,6 +6,7 @@
 #include <ChimeraTK/NumericAddress.h>
 
 #include <stdint.h>
+
 #include <string>
 
 MtcaProgrammerBase::MtcaProgrammerBase(const ProgAccessRaw& args)

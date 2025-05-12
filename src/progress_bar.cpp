@@ -5,10 +5,11 @@
 
 #include <sys/ioctl.h>
 
+#include <term.h>
+
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
-#include <term.h>
 
 /**********************************************************************************************************************/
 
@@ -33,7 +34,7 @@ void ProgressBar::update(double TotalToDownload, double NowDownloaded) {
 
   int total_barlength;
   int col;
-  struct winsize size {};
+  struct winsize size{};
 
   setupterm(nullptr, fileno(stdout), nullptr);
 
