@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-/*******************************************************/
+/**********************************************************************************************************************/
 /* file: lenval.h                                      */
 /* abstract:  This file contains a description of the  */
 /*            data structure "lenval".                 */
-/*******************************************************/
+/**********************************************************************************************************************/
 
 /* the lenVal structure is a byte oriented type used to store an */
 /* arbitrary length binary value. As an example, the hex value   */

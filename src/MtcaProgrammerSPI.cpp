@@ -14,11 +14,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/*************************************************************************************/
+/**********************************************************************************************************************/
 /* Identifiers of known PROM memories mounted on boards supported by the
  * programmer  */
 /* If you want to add new supported memory, modify this map */
-/*************************************************************************************/
+/**********************************************************************************************************************/
 const std::map<uint64_t, memory_info_t> MtcaProgrammerSPI::known_proms = {
     {0x0103182001, {PROM_ADDR_24B, QUAD_MODE_DIS}}, // old uTC versions
     {0x014d190201, {PROM_ADDR_32B, QUAD_MODE_EN}},  // TCK7
@@ -28,7 +28,7 @@ const std::map<uint64_t, memory_info_t> MtcaProgrammerSPI::known_proms = {
     {0x20C21920C2, {PROM_ADDR_24B, QUAD_MODE_DIS}}, // SIS8300KU
     {0x0010172020, {PROM_ADDR_24B, QUAD_MODE_EN}}   // PiezoBox (M25P64)
 };
-/*************************************************************************************/
+/**********************************************************************************************************************/
 
 const uint8_t MtcaProgrammerSPI::bit_pattern[14] = {
     0x00, 0x09, 0x0F, 0xF0, 0x0F, 0xF0, 0x0F, 0xF0, 0x0F, 0xF0, 0x00, 0x00, 0x01, 0x61};
