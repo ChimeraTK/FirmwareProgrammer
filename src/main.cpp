@@ -286,8 +286,8 @@ int main(int argc, char* argv[]) {
     arguments = parse_arguments(argc, argv);
     verify_arguments(arguments);
 
-    // Quite mode disables the progress bar
-    ProgressBar::setDoNotShow(arguments.quiet_mode);
+    // Quiet mode disables the progress bar
+    ProgressBar::setDoNotShow(arguments.quiet_mode || isatty(fileno(stdin)) == 0);
 
     if(!arguments.dmap_file_path.empty()) // DMAP mode
     {
