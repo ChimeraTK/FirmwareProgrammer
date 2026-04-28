@@ -26,7 +26,8 @@ const std::map<uint64_t, memory_info_t> MtcaProgrammerSPI::known_proms = {
     {0x00001740EF, {PROM_ADDR_24B, QUAD_MODE_DIS}}, // SIS8300L
     {0x00001770EF, {PROM_ADDR_24B, QUAD_MODE_DIS}}, // SIS8300L2
     {0x20C21920C2, {PROM_ADDR_24B, QUAD_MODE_DIS}}, // SIS8300KU
-    {0x0010172020, {PROM_ADDR_24B, QUAD_MODE_EN}}   // PiezoBox (M25P64)
+    {0x0010172020, {PROM_ADDR_24B, QUAD_MODE_EN}},  // PiezoBox (M25P64)
+    {0x441019BA20, {PROM_ADDR_24B, QUAD_MODE_DIS}}  // AFCv4 (Micron MT25QL256ABA8ESF)
 };
 /**********************************************************************************************************************/
 
