@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.16)
 project(ChimeraTK_FirmwareProgrammer)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 04)
-set(${PROJECT_NAME}_MINOR_VERSION 10)
-set(${PROJECT_NAME}_PATCH_VERSION 01)
+set(${PROJECT_NAME}_MINOR_VERSION 11)
+set(${PROJECT_NAME}_PATCH_VERSION 00)
 
 # Set additional version-specific variables
 include(${CMAKE_SOURCE_DIR}/cmake/set_version_numbers.cmake)
